@@ -1,7 +1,10 @@
 import json
 import requests
+import logging
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 # Authorisation tokens for the web/api
 oauth_token = None  # Arches authorisation token
@@ -239,6 +242,53 @@ def login(self):
     self.csrf_token = csrf_token
     # TODO - Should really be just returning some kind of error message instead!
     return response
+
+
+def add_payload_data(node_name, payload, request_data):
+    """
+    Adds a given value to a
+
+    :param payload: str/dict -
+    :param node_name: str -
+    :param request_data:
+    """
+
+    node = nodes[node_name]["payload"]
+
+    # Coordinates are handled differently
+    if node_name == "SPATIAL_COORDINATES_GEOMETRY":
+        # TODO - Implement
+        node["features"][0]["geometry"]["coordinates"] = [request_data["latitude"], request_data["longitude"]]
+        value = None
+    else:
+        # Otherwise, we just use the reverse node mapping
+        value = request_data[rev_node_mapping[node_name]]
+
+    dtype = type(node)
+
+    if dtype == str:
+        unfinished_string = node
+    elif dtype in (list, dict):
+        unfinished_string = json.dumps(node)
+    else:
+        error = f"Payload data must be str, list or dict. Instead got {type(node)}: {node}"
+        logger.info(error)
+        raise ValueError(error)
+
+    # We use % formatting so we can convert dict to str without f
+    if value:
+        if node_name == "DESCRIPTION":
+            formatted_string = unfinished_string % (value, value)
+        else:
+            formatted_string = unfinished_string % value
+    else:
+        formatted_string = unfinished_string
+
+    data_value = formatted_string if dtype == str else json.loads(formatted_string)
+
+    graphid = nodes[node_name]["graph_id"]
+    payload["data"][graphid] = data_value
+
 
 def search_resources(request):
     """
