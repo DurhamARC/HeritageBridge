@@ -272,6 +272,34 @@ def get_parent_id( nodegroup_id, resource_id):
         return None
 
 
+def get_resource_descriptors(resource_id):
+    """
+    Retrieves the resource descriptors valuse for a given resource.
+    contains: display description, display name, geometries, graph name, graphi_id, map_popup, permissions, userid
+
+    :param resource_id: str - The resource UUID value
+    :returns: Dictionary containing relevant resource descriptor values, status and result message
+    """
+
+    result_dict = {
+        "status": False,
+        "message": None,
+        "content": ""
+    }
+
+    response = requests.get(endpoints["get_descriptors"] + resource_id)
+
+    if response.status_code == 200:
+        result_dict["content"] = json.loads(response.content)
+        result_dict["message"] = "success"
+        result_dict["status"] = True
+    else:
+        result_dict["message"] = response.reason
+        result_dict["status"] = False
+
+    return result_dict
+
+
 def upload_image(image_data, payload):
     """
 
