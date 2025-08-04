@@ -244,6 +244,34 @@ def login(self):
     return response
 
 
+def get_parent_id( nodegroup_id, resource_id):
+    """
+    Makes a request to the Arches instance to determine the resource instance_id value of a given resource object.
+    This must be requested
+    """
+    base_parent_payload = {
+        "tileid": "",
+        "data": {},
+        "nodegroup_id": nodegroup_id,
+        "parenttile_id": None,
+        "resourceinstance_id": resource_id,
+        "sortorder": 0,
+        "tiles": {}
+    }
+
+    parent_payload = {
+        'data': json.dumps(base_parent_payload, ensure_ascii=False)
+    }
+
+    parent_request = requests.post(endpoints["tile"], headers=get_headers(content_type="json"), data=parent_payload)
+
+    if parent_request.status_code == 200:
+        parent_response = json.loads(parent_request.content)
+        return parent_response["tileid"]
+    else:
+        return None
+
+
 def add_payload_data(node_name, payload, request_data):
     """
     Adds a given value to a
