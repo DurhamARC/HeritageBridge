@@ -392,3 +392,97 @@ def search_resources(request):
         "status_code": response.status_code if response.status_code else 500,
         "hits": response_hits
     }
+
+
+def submit_image_report(request_data, resource_id):
+    """
+    TODO - Consider multiple images per object, or is it a 1-1 relationship.
+    Data in: latitude, longitude, caption, captureDate, image
+    HerBridgeImage:
+        id, url, thumbnailUrl
+        latitude, longitude, captureDate, caption
+
+    :param request_data:
+    :param resource_id:
+    :returns:
+    """
+    response_dict = {
+        "status": False,
+        "content": ""
+    }
+
+    # TODO - This function needs to be set up to ensure that it can support either "image", or "url"?
+    # TODO - It makes more sense for this to instead just support one of these - url
+
+    # Determine if any keys are missing.
+    key_list = {"id", "latitude", "longitude", "caption", "captureDate", "image"}
+    used_keys = {item[0] for item in request_data.items()}
+    error = None
+
+    if key_list != used_keys or len(used_keys) != len(key_list):
+        error = f"Incorrect keys used: {used_keys}. Should be {key_list}."
+
+    missing_keys = [key for key, value in request_data.items() if value is None]
+
+    if missing_keys or request_data is None:
+        error = f"Missing values for key(s): {missing_keys}"
+
+    if error:
+        response_dict["content"] = error
+        # return response_dict
+
+    inserted_parents = {}
+    for key, value in request_data.items():
+        if value is None or key == "longitude":
+            # TODO - Remove this line! or modify for just long
+            continue
+
+        mapped_node = node_mapping[key]
+        nodegroup_id = nodes[mapped_node]["nodegroup_id"]
+
+        if nodegroup_id not in inserted_parents.keys() and key == "captureDate":
+            inserted_parents[nodegroup_id] = get_parent_id(nodegroup_id, resource_id)
+            parent_id = inserted_parents[nodegroup_id]
+            nodegroup_id = nodes[mapped_node]["graph_id"]
+        else:
+            # We either set the parent ID to none, or use the pregenerated one if required
+            parent_id = inserted_parents[nodegroup_id] if inserted_parents.get(nodegroup_id) else None
+
+
+        payload_contents = {
+            "tileid": "",
+            "data": {},
+            "nodegroup_id": nodegroup_id,
+            # Should be inside the loop?
+            "parenttile_id": parent_id,
+            "resourceinstance_id": resource_id, "sortorder": 0, "tiles": {}
+        }
+
+        # Get the key mapping
+        mapped_key = node_mapping[key]
+        # Now we add the payload data
+        add_payload_data(mapped_key, payload_contents, request_data)
+
+        payload = {
+            "data": json.dumps(payload_contents)
+        }
+
+        if key != "image":
+            response = requests.post(endpoints["tile"], headers=get_headers(), data=payload)
+        else:
+            response = upload_image(value, payload)
+
+        if response.status_code in [500]:
+            # TODO - Delete the tile?
+            # self.delete_resource()
+            with open("error.html", 'w') as f:
+                f.write(f"{response.content.decode('unicode_escape')}")
+        else:
+            pass
+
+    # If no errors here, we can just go ahead and set status messages and return
+    response_dict["status"] = True
+    response_dict["content"] = f"Success! for inserting {resource_id}"
+
+    return response_dict
+
