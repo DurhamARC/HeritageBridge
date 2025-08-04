@@ -7,7 +7,7 @@
     "dev": "npm run clean && webpack --watch -p --progress --config webpack.dev.js ./src/index.js --output ./static/frontend/frontend_dev.js",
     "prod": "npm run clean && webpack -p --progress --config webpack.prod.js ./src/index.js --output ./static/frontend/frontend.js",
     "clean": "rm -f static/frontend/*.hot-update.json && rm -f static/frontend/*.hot-update.js",
-    "postinstall": "npm run build:prod"
+    "postinstall": "npm run prod"
   },
   "keywords": [],
   "author": "",
@@ -31,7 +31,7 @@
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
     "react-images": "^0.5.19",
-    "react-map-gl": "3.3.5",
+    "react-map-gl": "^4.1.16",
     "react-map-gl-geocoder": "^1.3.2",
     "react-svg-inline": "^2.1.1",
     "react-swipeable-views": "^0.12.17",
