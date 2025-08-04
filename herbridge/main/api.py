@@ -1,3 +1,4 @@
+import json
 import requests
 
 from django.conf import settings
@@ -238,3 +239,57 @@ def login(self):
     self.csrf_token = csrf_token
     # TODO - Should really be just returning some kind of error message instead!
     return response
+
+def search_resources(request):
+    """
+
+    :param request: The request object containing coordinate data
+    :returns: A dict containing the status code and any hits
+    """
+
+    coordinates = json.loads(request.body)["coordinates"][0]
+    url = settings.EAMENA_TARGET + "/search/resources"
+    map_filter = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "coordinates": [
+                        coordinates
+                    ],
+                    "type": "Polygon" if len(coordinates) > 1 else "Point"
+                }
+            }
+        ]
+    }
+    url += "?map-filter=" + json.dumps(map_filter)
+    heritage_page = "34cfe98e-c2c0-11ea-9026-02e7594ce0a0"
+    resource_filter = f"""&resource-type-filter=[{{"graphid":"{heritage_page}","name":"Information Resource","inverted":false}}]"""
+    url += resource_filter
+
+    response = requests.get(url)
+    result_json = json.loads(response.text)
+    result_hits = result_json["results"]["hits"]["hits"]
+
+    response_hits = []
+    for hit in result_hits:
+        hit_id = hit["_id"]
+        hit_data = hit["_source"]
+        hit_coords = hit_data["points"][0]["point"]
+
+        # displaydescription is actually mapped to Resource Summary->Name in Eamena.
+        hit_dict = {
+                "resource_id": hit_id,
+                "resource_name": hit_data["displayname"],
+                "resource_type": "PLACEHOLDER", # What should this actually say for Heritage Place
+                "resource_description": hit_data["displaydescription"],
+                "geometry": {"coordinates": [hit_coords["lat"], hit_coords["lon"]]}
+        }
+
+        response_hits.append(hit_dict)
+
+    return {
+        "status_code": response.status_code if response.status_code else 500,
+        "hits": response_hits
+    }

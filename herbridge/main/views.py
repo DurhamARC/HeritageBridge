@@ -1,6 +1,7 @@
 import json
-
+import logging
 import requests
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse, Http404
@@ -9,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import GEOSGeometry
 from main.models import get_model
+from main.api import search_resources
 from rest_framework import generics
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.parsers import MultiPartParser, JSONParser
@@ -97,16 +99,25 @@ class LoginAuthToken(ObtainAuthToken):
 
 
 def get_eamena_resource_for_polygon(request):
-    if request.method != "POST":
-        raise Http404()
-    elif request.body:
-        response = requests.post(settings.EAMENA_TARGET + '/api/herbridge/get', data=request.body)
-        if response.status_code == 200:
-            return JsonResponse(response.json(), safe=False)
+    try:
+        if request.method != "POST":
+            raise Http404()
+        elif request.body:
+
+            # Execute the search resource query
+            response = search_resources(request)
+
+            if response["status_code"] == 200:
+                return JsonResponse(response["hits"], safe=False)
+            else:
+                return JsonResponse(status=400, data={"message": "Eamena failed to provide resources, check polygon"})
         else:
-            return JsonResponse(status=400, data={"message": "Eamena failed to provide resources, check polygon"})
-    else:
-        return JsonResponse(status=400, data={"message": "Missing request body"})
+            return JsonResponse(status=400, data={"message": "Missing request body"})
+    except Exception as e:
+        # Log and raise any exception
+        logging.error(e)
+        raise e
+
 
 
 def get_images_for_polygon(request):
