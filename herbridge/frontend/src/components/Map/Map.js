@@ -103,7 +103,7 @@ export default class extends React.Component {
     return (
       <div>
         {resources.map((resource, index) => {
-          const coordinates = resource.centroid.coordinates
+          const coordinates = resource.geometry.coordinates
           return (
             <Marker
               longitude={coordinates[0]}

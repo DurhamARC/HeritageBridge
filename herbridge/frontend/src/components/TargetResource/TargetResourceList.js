@@ -38,7 +38,7 @@ export default class extends React.Component {
               fontWeight: 'bold',
               padding: '8px 12px',
             }}>{index + 1}</span>
-            <ListItemText primary={resource.resource_name} secondary={capitalize(resource.resource_type)}/>
+            <ListItemText primary={resource.resource_name} secondary={capitalize(resource.resource_description)}/>
             <ListItemSecondaryAction>
               <Checkbox
                 color="primary"
