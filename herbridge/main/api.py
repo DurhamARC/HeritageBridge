@@ -272,6 +272,27 @@ def get_parent_id( nodegroup_id, resource_id):
         return None
 
 
+def upload_image(image_data, payload):
+    """
+
+    """
+
+    graph_id = nodes["FILE_UPLOAD"]["graph_id"]
+
+    files = {
+        f"file-list_{graph_id}" : (
+            "Black.png",
+            open("Black.png", "rb"),
+            "image/png"
+        )
+    }
+
+
+    upload_response = requests.post(endpoints["tile"], headers=get_headers(), data=payload, files=files)
+
+    return upload_response
+
+
 def add_payload_data(node_name, payload, request_data):
     """
     Adds a given value to a
