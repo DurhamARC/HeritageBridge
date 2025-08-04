@@ -1,3 +1,4 @@
+import requests
 
 from django.conf import settings
 
@@ -128,3 +129,112 @@ graphs = {
     "Heritage Place": "34cfe98e-c2c0-11ea-9026-02e7594ce0a0",
     "Person-Organisation": "e98e1cee-c38b-11ea-9026-02e7594ce0a0"
 }
+
+def get_login_data():
+    """
+    Generates a dictionary containing relevant values used for site login.
+    Contaisn the csrfmiddlewaretoken, account username and password.
+
+    """
+    data = {
+        'csrfmiddlewaretoken': csrf_token,
+        'username': settings.ARCHES_USERNAME,
+        'password': settings.ARCHES_PASSWORD
+    }
+    return data
+
+def get_headers(oauth=False, content_type=None):
+    """
+    Generates headers required to pass data to the Eamena instance.
+    Used to insert the authentication data, etc.
+    """
+    headers = {
+        'Origin': f'{settings.EAMENA_TARGET}',
+        'Cookie': f'csrftoken={csrf_token}; eamena={eamena_token};'
+    }
+
+    if oauth:
+        headers["Authorization"] = f"Bearer {auth_token}"
+
+    if content_type:
+        if content_type == "json":
+            headers["Content-Type"] = "application/json"
+        elif content_type == "form":
+            headers["Content-Type"] = "multipart/form-data"
+        else:
+            # TODO - Error messaging etc.
+            pass
+
+    # TODO - A lof of these headers are possibly not useful.
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0',
+        'Accept': '*/*',
+        'Accept-Language': 'en-GB,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate',
+        'Referer': 'http://10.249.103.187/resource/c279071a-051a-48c8-89df-c676a0ea9f26',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Connection': 'keep-alive',
+        'Origin': f'{settings.EAMENA_TARGET}',
+        'Cookie': f'csrftoken={csrf_token}; eamena={eamena_token};',
+        'X-CSRFToken': f'{csrf_token}',
+        'Priority': 'u=0'
+    }
+
+    return headers
+
+
+def get_oauth_token():
+    """
+
+    """
+    data = {
+        "username": settings.ARCHES_USERNAME,
+        "password": settings.ARCHES_PASSWORD,
+        "grant_type": "password",
+        "settings.ARCHES_CLIENT_ID": settings.ARCHES_CLIENT_ID
+    }
+    response = requests.post(endpoints["oauth"], data=data).json()
+    auth_token = response["access_token"]
+    return response
+
+
+def login(self):
+    """
+        Logs into the Eamena Arches instance.
+        Requests the index page in order to generate a session and csrf token, which are
+        saved in this object's variables.
+
+        :returns response: The request's response object.
+    """
+
+    response = {
+        "status": 0,
+        "session": None
+    }
+
+    session = requests.Session()
+    # Request the homepage to begin a session.
+    session.get(endpoints["index"])
+
+    # Set the Object's internal csrf token for later use
+    csrf_token = session.cookies.get('csrftoken')
+
+    # Get the pregenerated headers
+    headers = get_headers()
+
+    # Set the data payload to be sent, including csrf token, username and password
+    login_data = get_login_data()
+
+    login_request = requests.post(endpoints["log_in"], data=login_data, headers=headers)
+
+    response["status"] = login_request.status_code
+    request_cookies = login_request.request.headers["cookie"]
+
+    # Determine the csrf and session (named eamena) token
+    eamena_token = request_cookies.split("eamena=")[1]
+    csrf_token = request_cookies.split("csrftoken=")[1].split(";")[0]
+
+    self.eamena_token = eamena_token
+    self.csrf_token = csrf_token
+    # TODO - Should really be just returning some kind of error message instead!
+    return response
