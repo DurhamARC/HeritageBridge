@@ -158,7 +158,7 @@ def get_headers(oauth=False, content_type=None):
     }
 
     if oauth:
-        headers["Authorization"] = f"Bearer {auth_token}"
+        headers["Authorization"] = f"Bearer {get_oauth_token()}"
 
     if content_type:
         if content_type == "json":
@@ -198,8 +198,7 @@ def get_oauth_token():
         "settings.ARCHES_CLIENT_ID": settings.ARCHES_CLIENT_ID
     }
     response = requests.post(endpoints["oauth"], data=data).json()
-    auth_token = response["access_token"]
-    return response
+    return response["access_token"]
 
 
 def login(self):
