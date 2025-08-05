@@ -39,7 +39,7 @@ class ArchesAPI:
     # Mapping value names from AMAL -> EAMENA Arches values
     node_mapping = {
         "captureDate": "DATE_OF_FILE",
-        "url": "URL",
+        "url": "FILE_UPLOAD",
         "caption": "DESCRIPTION",
         "latitude": "SPATIAL_COORDINATES_GEOMETRY",
         "longitude": "SPATIAL_COORDINATES_GEOMETRY",
