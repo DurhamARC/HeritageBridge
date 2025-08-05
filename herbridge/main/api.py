@@ -207,15 +207,24 @@ class ArchesAPI:
         """
 
         """
+        endpoint = self.get_endpoint("oauth")
+
         data = {
             "username": settings.ARCHES_USERNAME,
             "password": settings.ARCHES_PASSWORD,
-            "grant_type": "password",
-            "settings.ARCHES_CLIENT_ID": settings.ARCHES_CLIENT_ID
+            "grant_type": "password"
         }
-        response = requests.post(self.get_endpoint("oauth"), data=data).json()
-        return response["access_token"]
+        auth = HTTPBasicAuth(
+            settings.ARCHES_CLIENT_ID,
+            settings.ARCHES_CLIENT_SECRET
+        )
 
+        session = requests.Session()
+        headers = self.get_headers(referrer=endpoint)
+        response_json = session.post(endpoint, data=data, headers=headers, auth=auth).json()
+
+        self.auth_token = response_json["access_token"]
+        return response_json["access_token"]
 
     def login(self):
         """
