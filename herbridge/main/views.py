@@ -10,11 +10,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import GEOSGeometry
 from main.models import get_model
-from main.api import search_resources
+from main.api import ArchesAPI
 from rest_framework import generics
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
+
+arches_api = ArchesAPI()
 
 def home(request):
     return render(request, 'index.html')
@@ -105,7 +107,7 @@ def get_eamena_resource_for_polygon(request):
         elif request.body:
 
             # Execute the search resource query
-            response = search_resources(request)
+            response = arches_api.search_resources(request)
 
             if response["status_code"] == 200:
                 return JsonResponse(response["hits"], safe=False)
@@ -133,14 +135,17 @@ def get_images_for_polygon(request):
     else:
         return JsonResponse(status=400, data={"message": "Missing request body"})
 
+
 def submit_image_for_resource(request):
     if request.method != "POST":
         raise Http404()
     elif request.body:
-        response = requests.post(settings.EAMENA_TARGET + '/api/herbridge/put', data=request.body)
-        if response.status_code == 201:
+        response = arches_api.submit_image_report(json.loads(request.body))
+
+        if response["status_code"] == 201:
             return JsonResponse(response.json(), safe=False)
         else:
+            response["status_code"] = 200
             return response
     else:
         return JsonResponse(status=400, data={"message": "Missing request body"})
