@@ -291,21 +291,50 @@ class ArchesAPI:
 
     def upload_image(self, image_data, payload):
         """
+        Handles uploading
 
+        :param image_data:
+        :param payload: dict - The payload for formatting and insertion
+        :returns:
         """
 
         graph_id = self.nodes["FILE_UPLOAD"]["graph_id"]
+        image_url = "/home/jordan/Documents/github/HeritageBridgeDev/Black.png"
+        im = Image.open(image_url)
+        file_size_bytes = os.path.getsize(image_url)
+
+        # Load in the base payload from a string
+        payload_data = json.loads(payload["data"])
+        # Get the image portion of the payload object
+        image_payload = payload_data["data"][graph_id][0]
+
+        # Insert required values into the payload
+        image_payload["size"] = file_size_bytes
+        image_payload["name"] = "image_1"
+        image_payload["height"] = im.size[1]
+        image_payload["width"] = im.size[0]
+        image_payload["lastModified"] = int(datetime.timestamp(datetime.now()))
+        payload_data["type"] = f"image/{im.format.lower()}"
+
+        payload["data"] = json.dumps(payload_data)
 
         files = {
-            f"file-list_{graph_id}" : (
+            f"file-list_{graph_id}": (
                 "Black.png",
-                open("Black.png", "rb"),
+                open(image_url, "rb"),
                 "image/png"
             )
         }
 
 
-        upload_response = requests.post(self.get_endpoint("tile"), headers=self.get_headers(), data=payload, files=files)
+        session = requests.Session()
+        upload_response = session.post(
+            self.get_endpoint("tile"),
+            headers=self.get_headers(),
+            # referrer=self.get_endpoint("tile"),
+            data=payload,
+            files=files
+        )
 
         return upload_response
 
