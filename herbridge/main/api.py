@@ -234,7 +234,7 @@ class ArchesAPI:
 
             :returns response: The request's response object.
         """
-
+        login_endpoint = self.get_endpoint("log_in")
         response = {
             "status": 0,
             "session": None
@@ -245,28 +245,21 @@ class ArchesAPI:
         session.get(self.get_endpoint("index"))
 
         # Set the Object's internal csrf token for later use
-        csrf_token = session.cookies.get('csrftoken')
+        self.csrf_token = session.cookies.get('csrftoken')
 
         # Get the pregenerated headers
-        headers = self.get_headers()
+        headers = self.get_headers(referrer=login_endpoint)
 
         # Set the data payload to be sent, including csrf token, username and password
         login_data = self.get_login_data()
 
-        login_request = requests.post(self.get_endpoint("log_in"), data=login_data, headers=headers)
+        login_request = session.post(login_endpoint, data=login_data, headers=headers)
 
         response["status"] = login_request.status_code
         request_cookies = login_request.request.headers["cookie"]
 
-        # Determine the csrf and session (named eamena) token
-        eamena_token = request_cookies.split("eamena=")[1]
-        csrf_token = request_cookies.split("csrftoken=")[1].split(";")[0]
-
-        self.eamena_token = eamena_token
-        self.csrf_token = csrf_token
-        # TODO - Should really be just returning some kind of error message instead!
-        return response
-
+        self.eamena_token = request_cookies.split("eamena=")[1]
+        self.csrf_token = request_cookies.split("csrftoken=")[1].split(";")[0]
 
     def get_parent_id(self, nodegroup_id, resource_id):
         """
