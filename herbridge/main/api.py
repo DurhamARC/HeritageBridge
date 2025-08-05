@@ -160,7 +160,7 @@ class ArchesAPI:
         }
         return data
 
-    def get_headers(self, oauth=False, content_type=None):
+    def get_headers(self, referrer=None, oauth=False, content_type=None):
         """
         Generates headers required to pass data to the Eamena instance.
         Used to insert the authentication data, etc.
@@ -171,7 +171,7 @@ class ArchesAPI:
         }
 
         if oauth:
-            headers["Authorization"] = f"Bearer {self.get_oauth_token()}"
+            headers["Authorization"] = f"Bearer {self.auth_token}"
 
         if content_type:
             if content_type == "json":
@@ -188,7 +188,7 @@ class ArchesAPI:
             'Accept': '*/*',
             'Accept-Language': 'en-GB,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate',
-            'Referer': 'http://10.249.103.187/resource/c279071a-051a-48c8-89df-c676a0ea9f26',
+            'Referer': '',
             'X-Requested-With': 'XMLHttpRequest',
             'Connection': 'keep-alive',
             'Origin': f'{settings.EAMENA_TARGET}',
@@ -196,6 +196,9 @@ class ArchesAPI:
             'X-CSRFToken': f'{self.csrf_token}',
             'Priority': 'u=0'
         }
+
+        if referrer:
+            headers['Referer'] = referrer
 
         return headers
 
