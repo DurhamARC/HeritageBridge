@@ -355,6 +355,8 @@ class ArchesAPI:
             # TODO - Implement
             node["features"][0]["geometry"]["coordinates"] = [request_data["latitude"], request_data["longitude"]]
             value = None
+        elif node_name == "FILE_UPLOAD":
+            value = None
         else:
             # Otherwise, we just use the reverse node mapping
             value = request_data[self.rev_node_mapping[node_name]]
