@@ -138,6 +138,10 @@ class ArchesAPI:
     "Person-Organisation": "e98e1cee-c38b-11ea-9026-02e7594ce0a0"
     }
 
+    def __init__(self):
+        self.login()
+        self.get_oauth_token()
+
     def get_login_data(self):
         """
         Generates a dictionary containing relevant values used for site login.
