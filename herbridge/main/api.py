@@ -270,9 +270,9 @@ class ArchesAPI:
         base_parent_payload = {
             "tileid": "",
             "data": {},
-            "nodegroup_id": self.nodegroup_id,
+            "nodegroup_id": nodegroup_id,
             "parenttile_id": None,
-            "resourceinstance_id": self.resource_id,
+            "resourceinstance_id": resource_id if resource_id else '',
             "sortorder": 0,
             "tiles": {}
         }
