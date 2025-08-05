@@ -3,6 +3,7 @@ import requests
 import logging
 
 from django.conf import settings
+from requests.auth import HTTPBasicAuth
 
 logger = logging.getLogger(__name__)
 
