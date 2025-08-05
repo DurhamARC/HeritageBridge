@@ -411,8 +411,7 @@ class ArchesAPI:
             ]
         }
         url += "?map-filter=" + json.dumps(map_filter)
-        heritage_page = "34cfe98e-c2c0-11ea-9026-02e7594ce0a0"
-        resource_filter = f"""&resource-type-filter=[{{"graphid":"{heritage_page}","name":"Information Resource","inverted":false}}]"""
+        resource_filter = f"""&resource-type-filter=[{{"graphid":"{self.graphs["Heritage Place"]}","name":"Heritage Place","inverted":false}}]"""
         url += resource_filter
 
         response = requests.get(url)
@@ -427,11 +426,11 @@ class ArchesAPI:
 
             # displaydescription is actually mapped to Resource Summary->Name in Eamena.
             hit_dict = {
-                    "resource_id": hit_id,
-                    "resource_name": hit_data["displayname"],
-                    "resource_type": "PLACEHOLDER", # What should this actually say for Heritage Place
-                    "resource_description": hit_data["displaydescription"],
-                    "geometry": {"coordinates": [hit_coords["lat"], hit_coords["lon"]]}
+                "resource_id": hit_id,
+                "resource_name": hit_data["displayname"],
+                "resource_type": "Heritage Place",  # What should this actually say for Heritage Place
+                "resource_description": hit_data["displaydescription"],
+                "geometry": {"coordinates": [hit_coords["lat"], hit_coords["lon"]]}
             }
 
             response_hits.append(hit_dict)
