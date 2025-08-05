@@ -19,20 +19,20 @@ class ArchesAPI:
     # The available endpoints we will be using
     # TODO -  Fix consistency with slash endings
     endpoints = {
-    # Homepage - Used to request initial session token.
-    "index": "/index.htm",
-    # Used to generate the session token for access
-    "log_in": "/auth/",
-    # Generating/refreshing token for oauth-protected standard endpoints
-    "oauth": "/o/token/",
-    "resource": "/resource",
-    "resources": "/resources",
-    "add_resource": "/add-resource/",
-    # Gets a specific resource based (resources/RESOURCE_TYPE/RESOURCE_ID - UUID)
-    "get_resource": "/resources/%s/%s",  # Gets a specific resource
-    "tile": "/tile",  # For interacting with tiles to insert data/retrieve IDs
-    "search_resources": "/search/resources",
-    "get_descriptors": "/resource/descriptors/"
+        # Homepage - Used to request initial session token.
+        "index": "/index.htm",
+        # Used to generate the session token for access
+        "log_in": "/auth/",
+        # Generating/refreshing token for oauth-protected standard endpoints
+        "oauth": "/o/token/",
+        "resource": "/resource",
+        "resources": "/resources",
+        "add_resource": "/add-resource/",
+        # Gets a specific resource based (resources/RESOURCE_TYPE/RESOURCE_ID - UUID)
+        "get_resource": "/resources/%s/%s",  # Gets a specific resource
+        "tile": "/tile",  # For interacting with tiles to insert data/retrieve IDs
+        "search_resources": "/search/resources",
+        "get_descriptors": "/resource/descriptors/",
     }
 
     # Mapping value names from AMAL -> EAMENA Arches values
