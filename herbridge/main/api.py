@@ -38,105 +38,103 @@ class ArchesAPI:
 
     # Mapping value names from AMAL -> EAMENA Arches values
     node_mapping = {
-    "captureDate": "DATE_OF_FILE",
-    "url": "URL",
-    "caption": "DESCRIPTION",
-    "latitude": "SPATIAL_COORDINATES_GEOMETRY",
-    "longitude": "SPATIAL_COORDINATES_GEOMETRY",
-    "image": "FILE_UPLOAD"
+        "captureDate": "DATE_OF_FILE",
+        "url": "URL",
+        "caption": "DESCRIPTION",
+        "latitude": "SPATIAL_COORDINATES_GEOMETRY",
+        "longitude": "SPATIAL_COORDINATES_GEOMETRY",
+        "image": "FILE_UPLOAD"
     }
 
     # Mapping value names from EAMENA -> AMAL
     rev_node_mapping = {
-    "DATE_OF_FILE": "captureDate",
-    "URL": "url",
-    "DESCRIPTION": "caption",
-    "FILE_UPLOAD": "image",
-    "SPATIAL_COORDINATES_GEOMETRY": {"lat", "long"}
+        "DATE_OF_FILE": "captureDate",
+        "DESCRIPTION": "caption",
+        "FILE_UPLOAD": {"image", "url"},
+        "SPATIAL_COORDINATES_GEOMETRY": {"lat", "long"}
     }
 
     # Nodegroup IDs for insertion groups
     nodegroups = {
-    "imagery": "90181f02-5252-11ea-a3f7-02e7594ce0a0",
-    "urls": "7f41dcde-518c-11ea-a3f7-02e7594ce0a0",
-    "description": "b528b064-5189-11ea-a3f7-02e7594ce0a0",
-    "location": "587447d5-b0c2-11ea-9b1f-02e7594ce0a0",
-    "file_upload": "c712066a-8094-11ea-a6a6-02e7594ce0a0"
+        "imagery": "90181f02-5252-11ea-a3f7-02e7594ce0a0",
+        "urls": "7f41dcde-518c-11ea-a3f7-02e7594ce0a0",
+        "description": "b528b064-5189-11ea-a3f7-02e7594ce0a0",
+        "location": "587447d5-b0c2-11ea-9b1f-02e7594ce0a0",
+        "file_upload": "c712066a-8094-11ea-a6a6-02e7594ce0a0"
     }
 
     # Contains the graph_ids, nodegroup ID values, and the fstring/dict for payload formatting
     nodes = {
-    "DATE_OF_ACQUISITION": {
-        "graph_id": "4077fb00-5253-11ea-a3f7-02e7594ce0a0",
-        "nodegroup_id": nodegroups["imagery"],
-        "payload": "%s"
-    },
-    "URL": {
-        "graph_id": "7f41dcde-518c-11ea-a3f7-02e7594ce0a0",
-        "nodegroup_id": nodegroups["urls"],
-        "payload": {"en": {"direction": "ltr", "value": "%s"}}
-    },
-    "DESCRIPTION": {
-        "graph_id": "b528b064-5189-11ea-a3f7-02e7594ce0a0",
-        "nodegroup_id": nodegroups["description"],
-        "payload": {
-            "ar": {"direction": "rtl", "value": "%s"},
-            "en": {"direction": "ltr", "value": "%s"},
+        "DATE_OF_ACQUISITION": {
+            "graph_id": "4077fb00-5253-11ea-a3f7-02e7594ce0a0",
+            "nodegroup_id": nodegroups["imagery"],
+            "payload": "%s"
+        },
+        "URL": {
+            "graph_id": "7f41dcde-518c-11ea-a3f7-02e7594ce0a0",
+            "nodegroup_id": nodegroups["urls"],
+            "payload": {"en": {"direction": "ltr", "value": "%s"}}
+        },
+        "DESCRIPTION": {
+            "graph_id": "b528b064-5189-11ea-a3f7-02e7594ce0a0",
+            "nodegroup_id": nodegroups["description"],
+            "payload": {
+                "ar": {"direction": "rtl", "value": "%s"},
+                "en": {"direction": "ltr", "value": "%s"},
+            }
+        },
+        "DATE_OF_FILE": {
+            "graph_id": "bf22c07c-52f1-11ea-a3f7-02e7594ce0a0",
+            "nodegroup_id": nodegroups["imagery"],
+            "payload": "%s"
+        },
+        "SPATIAL_COORDINATES_GEOMETRY": {
+            "graph_id": "587447d2-b0c2-11ea-9b1f-02e7594ce0a0",
+            "nodegroup_id": nodegroups["location"],
+            "payload": {
+                "type": "FeatureCollection",
+                "features": [{
+                    "id": "f8498c82de3c3c3285ed4c24f050a48e",
+                    "type": "Feature",
+                    "properties": {
+                        "nodeId": "587447d2-b0c2-11ea-9b1f-02e7594ce0a0"
+                    },
+                    "geometry": {
+                        "coordinates": [],
+                        "type": "Point"
+                    }
+                }]
+            }
+        },
+        "FILE_UPLOAD": {
+            "graph_id": "c712066a-8094-11ea-a6a6-02e7594ce0a0",
+            "nodegroup_id": nodegroups["file_upload"],
+            "payload": [{
+                    "name": "image_1",
+                    "accepted": True,
+                    "height": 0,
+                    "lastModified": 0,
+                    "size": 0,
+                    "status": "added",
+                    "type": "image/jpg",
+                    "width": 0,
+                    "url": None,
+                    "file_id": None,
+                    "index": 0,
+                    "content": ""
+                }]
         }
-    },
-    "DATE_OF_FILE": {
-        "graph_id": "bf22c07c-52f1-11ea-a3f7-02e7594ce0a0",
-        "nodegroup_id": nodegroups["imagery"],
-        "payload": "%s"
-    },
-    "SPATIAL_COORDINATES_GEOMETRY": {
-        "graph_id": "587447d2-b0c2-11ea-9b1f-02e7594ce0a0",
-        "nodegroup_id": nodegroups["location"],
-        "payload": {
-            "type": "FeatureCollection",
-            "features": [{
-                "id": "f8498c82de3c3c3285ed4c24f050a48e",
-                "type": "Feature",
-                "properties": {
-                    "nodeId": "587447d2-b0c2-11ea-9b1f-02e7594ce0a0"
-                },
-                "geometry": {
-                    "coordinates": [],
-                    "type": "Point"
-                }
-            }]
-        }
-    },
-    "FILE_UPLOAD": {
-        "graph_id": "c712066a-8094-11ea-a6a6-02e7594ce0a0",
-        "nodegroup_id": nodegroups["file_upload"],
-        "payload": [
-            {
-                "name": "%s",  # TODO - Requires Value?
-                "accepted": True,
-                "height": 0,  # TODO - Requires Value?
-                "lastModified": 0,  # TODO - Requires Value?
-                "size": 0,  # TODO - Requires Value?
-                "status": "added",
-                "type": "%s",  # TODO - Dealing with this?
-                "width": 0,  # TODO - Requires Value?
-                "url": None,
-                "file_id": None,
-                "index": 0,
-                "content": ""            }
-        ]
-    }
     }
 
     # Graph ID values for EAMENA object types
     graphs = {
-    "Information Resource": "35b99cb7-379a-11ea-9989-06f597a7d5ce",
-    "Built Component": "6c4f0703-c381-11ea-9026-02e7594ce0a0",
-    "Detailed Condition Assessment": "f6235ff1-f992-11e9-b345-06f597a7d5ce",
-    "Geoarchaeology": "5297fa9e-8e16-11ea-a6a6-02e7594ce0a0",
-    "Grid Square": "77d18973-7428-11ea-b4d0-02e7594ce0a0",
-    "Heritage Place": "34cfe98e-c2c0-11ea-9026-02e7594ce0a0",
-    "Person-Organisation": "e98e1cee-c38b-11ea-9026-02e7594ce0a0"
+        "Information Resource": "35b99cb7-379a-11ea-9989-06f597a7d5ce",
+        "Built Component": "6c4f0703-c381-11ea-9026-02e7594ce0a0",
+        "Detailed Condition Assessment": "f6235ff1-f992-11e9-b345-06f597a7d5ce",
+        "Geoarchaeology": "5297fa9e-8e16-11ea-a6a6-02e7594ce0a0",
+        "Grid Square": "77d18973-7428-11ea-b4d0-02e7594ce0a0",
+        "Heritage Place": "34cfe98e-c2c0-11ea-9026-02e7594ce0a0",
+        "Person-Organisation": "e98e1cee-c38b-11ea-9026-02e7594ce0a0"
     }
 
     def __init__(self):
