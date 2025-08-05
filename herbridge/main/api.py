@@ -20,19 +20,19 @@ class ArchesAPI:
     # TODO -  Fix consistency with slash endings
     endpoints = {
     # Homepage - Used to request initial session token.
-    "index": f"{settings.EAMENA_TARGET}/index.htm",
+    "index": "/index.htm",
     # Used to generate the session token for access
-    "log_in": f"{settings.EAMENA_TARGET}/auth/",
+    "log_in": "/auth/",
     # Generating/refreshing token for oauth-protected standard endpoints
-    "oauth": f"{settings.EAMENA_TARGET}/o/token/",
-    "resource": f"{settings.EAMENA_TARGET}/resource",
-    "resources": f"{settings.EAMENA_TARGET}/resources",
-    "add_resource": f"{settings.EAMENA_TARGET}/add-resource/",
+    "oauth": "/o/token/",
+    "resource": "/resource",
+    "resources": "/resources",
+    "add_resource": "/add-resource/",
     # Gets a specific resource based (resources/RESOURCE_TYPE/RESOURCE_ID - UUID)
-    "get_resource": f"{settings.EAMENA_TARGET}/resources/%s/%s",  # Gets a specific resource
-    "tile": f"{settings.EAMENA_TARGET}/tile",  # For interacting with tiles to insert data/retrieve IDs
-    "search_resources": f"{settings.EAMENA_TARGET}/search/resources",
-    "get_descriptors": f"{settings.EAMENA_TARGET}/resource/descriptors/"
+    "get_resource": "/resources/%s/%s",  # Gets a specific resource
+    "tile": "/tile",  # For interacting with tiles to insert data/retrieve IDs
+    "search_resources": "/search/resources",
+    "get_descriptors": "/resource/descriptors/"
     }
 
     # Mapping value names from AMAL -> EAMENA Arches values
@@ -142,6 +142,12 @@ class ArchesAPI:
         self.login()
         self.get_oauth_token()
 
+    def get_endpoint(self, endpoint_id):
+        """
+        :param endpoint_id: str - The endpoint  string identifier to return on
+        """
+        return f"{settings.EAMENA_TARGET}{self.endpoints[endpoint_id]}"
+
     def get_login_data(self):
         """
         Generates a dictionary containing relevant values used for site login.
@@ -205,7 +211,7 @@ class ArchesAPI:
             "grant_type": "password",
             "settings.ARCHES_CLIENT_ID": settings.ARCHES_CLIENT_ID
         }
-        response = requests.post(self.endpoints["oauth"], data=data).json()
+        response = requests.post(self.get_endpoint("oauth"), data=data).json()
         return response["access_token"]
 
 
@@ -225,7 +231,7 @@ class ArchesAPI:
 
         session = requests.Session()
         # Request the homepage to begin a session.
-        session.get(self.endpoints["index"])
+        session.get(self.get_endpoint("index"))
 
         # Set the Object's internal csrf token for later use
         csrf_token = session.cookies.get('csrftoken')
@@ -236,7 +242,7 @@ class ArchesAPI:
         # Set the data payload to be sent, including csrf token, username and password
         login_data = self.get_login_data()
 
-        login_request = requests.post(self.endpoints["log_in"], data=login_data, headers=headers)
+        login_request = requests.post(self.get_endpoint("log_in"), data=login_data, headers=headers)
 
         response["status"] = login_request.status_code
         request_cookies = login_request.request.headers["cookie"]
@@ -270,7 +276,7 @@ class ArchesAPI:
             'data': json.dumps(base_parent_payload, ensure_ascii=False)
         }
 
-        parent_request = requests.post(self.endpoints["tile"], headers=self.get_headers(content_type="json"), data=parent_payload)
+        parent_request = requests.post(self.get_endpoint("tile"), headers=self.get_headers(content_type="json"), data=parent_payload)
 
         if parent_request.status_code == 200:
             parent_response = json.loads(parent_request.content)
@@ -294,7 +300,7 @@ class ArchesAPI:
             "content": ""
         }
 
-        response = requests.get(self.endpoints["get_descriptors"] + resource_id)
+        response = requests.get(self.get_endpoint("get_descriptors") + resource_id)
 
         if response.status_code == 200:
             result_dict["content"] = json.loads(response.content)
@@ -323,7 +329,7 @@ class ArchesAPI:
         }
 
 
-        upload_response = requests.post(self.endpoints["tile"], headers=self.get_headers(), data=payload, files=files)
+        upload_response = requests.post(self.get_endpoint("tile"), headers=self.get_headers(), data=payload, files=files)
 
         return upload_response
 
@@ -503,7 +509,7 @@ class ArchesAPI:
             }
 
             if key != "image":
-                response = requests.post(self.endpoints["tile"], headers=self.get_headers(), data=payload)
+                response = requests.post(self.get_endpoint("tile"), headers=self.get_headers(), data=payload)
             else:
                 response = self.upload_image(value, payload)
 
