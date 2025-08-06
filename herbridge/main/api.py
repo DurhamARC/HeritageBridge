@@ -138,10 +138,6 @@ class ArchesAPI:
         "Person-Organisation": "e98e1cee-c38b-11ea-9026-02e7594ce0a0"
     }
 
-    def __init__(self):
-        self.login()
-        self.get_oauth_token()
-
     def get_endpoint(self, endpoint_id):
         """
         :param endpoint_id: str - The endpoint  string identifier to return on
@@ -166,6 +162,14 @@ class ArchesAPI:
         Generates headers required to pass data to the Eamena instance.
         Used to insert the authentication data, etc.
         """
+
+        # Here is where we either log in, or generate an oauth token if it doesn't already exist.
+        if not self.csrf_token or not self.eamena_token:
+            self.login()
+
+        if not self.auth_token:
+            self.get_oauth_token()
+
         headers = {
             'Origin': f'{settings.EAMENA_TARGET}',
             'Cookie': f'csrftoken={self.csrf_token}; eamena={self.eamena_token};'
