@@ -105,7 +105,7 @@ def get_eamena_resource_for_polygon(request):
         if request.method != "POST":
             raise Http404()
         elif request.body:
-
+            arches_api.initialise_tokens()
             # Execute the search resource query
             response = arches_api.search_resources(request)
 
@@ -140,6 +140,7 @@ def submit_image_for_resource(request):
     if request.method != "POST":
         raise Http404()
     elif request.body:
+        arches_api.initialise_tokens()
         response = arches_api.submit_image_report(json.loads(request.body))
 
         if response["status_code"] == 201:
