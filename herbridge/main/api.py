@@ -232,7 +232,7 @@ class ArchesAPI:
             auth=auth
         ).json()
 
-        self.auth_token = response_json["access_token"]
+        self.oauth_token = response_json.get("access_token")
 
     def login(self):
         """
