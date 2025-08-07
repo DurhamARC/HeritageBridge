@@ -473,8 +473,7 @@ class ArchesAPI:
             "hits": response_hits
         }
 
-
-    def submit_image_report(self, request_data, resource_id):
+    def submit_image_report(self, request_data):
         """
         TODO - Consider multiple images per object, or is it a 1-1 relationship.
         Data in: latitude, longitude, caption, captureDate, image
@@ -483,19 +482,17 @@ class ArchesAPI:
             latitude, longitude, captureDate, caption
 
         :param request_data:
-        :param resource_id:
         :returns:
         """
+        resource_id = request_data["id"]
+
         response_dict = {
-            "status": False,
+            "status_code": 0,
             "content": ""
         }
 
-        # TODO - This function needs to be set up to ensure that it can support either "image", or "url"?
-        # TODO - It makes more sense for this to instead just support one of these - url
-
         # Determine if any keys are missing.
-        key_list = {"id", "latitude", "longitude", "caption", "captureDate", "image"}
+        key_list = {"id", "latitude", "longitude", "caption", "captureDate", "url", "related_to"}
         used_keys = {item[0] for item in request_data.items()}
         error = None
 
@@ -509,48 +506,57 @@ class ArchesAPI:
 
         if error:
             response_dict["content"] = error
-            # return response_dict
+            return response_dict
 
         inserted_parents = {}
         for key, value in request_data.items():
-            if value is None or key == "longitude":
+            if value is None:
                 # TODO - Remove this line! or modify for just long
                 continue
-
-            mapped_node = self.node_mapping[key]
-            nodegroup_id = self.nodes[mapped_node]["nodegroup_id"]
-
-            if nodegroup_id not in inserted_parents.keys() and key == "captureDate":
-                inserted_parents[nodegroup_id] = self.get_parent_id(nodegroup_id, resource_id)
-                parent_id = inserted_parents[nodegroup_id]
-                nodegroup_id = self.nodes[mapped_node]["graph_id"]
+            elif key in ["longitude", "id"]:
+                # We skip these
+                continue
+            elif key == "related_to":
+                response = self.relate_resources(resource_id, value)
             else:
-                # We either set the parent ID to none, or use the pregenerated one if required
-                parent_id = inserted_parents[nodegroup_id] if inserted_parents.get(nodegroup_id) else None
+                mapped_node = self.node_mapping[key]
+                nodegroup_id = self.nodes[mapped_node]["nodegroup_id"]
 
+                if nodegroup_id not in inserted_parents.keys() and key == "captureDate":
+                    inserted_parents[nodegroup_id] = self.get_parent_id(nodegroup_id, resource_id)
+                    parent_id = inserted_parents[nodegroup_id]
+                    nodegroup_id = self.nodes[mapped_node]["graph_id"]
+                    formatted_date = datetime.utcfromtimestamp(value)
+                    value = formatted_date.strftime('%Y-%m-%d')
+                    request_data[key] = value
+                else:
+                    # We either set the parent ID to none, or use the pregenerated one if required
+                    parent_id = inserted_parents[nodegroup_id] if inserted_parents.get(nodegroup_id) else None
 
-            payload_contents = {
-                "tileid": "",
-                "data": {},
-                "nodegroup_id": nodegroup_id,
-                # Should be inside the loop?
-                "parenttile_id": parent_id,
-                "resourceinstance_id": resource_id, "sortorder": 0, "tiles": {}
-            }
+                payload_contents = {
+                    "tileid": "",
+                    "data": {},
+                    "nodegroup_id": nodegroup_id,
+                    # Should be inside the loop?
+                    "parenttile_id": parent_id,
+                    "resourceinstance_id": resource_id, "sortorder": 0, "tiles": {}
+                }
 
-            # Get the key mapping
-            mapped_key = self.node_mapping[key]
-            # Now we add the payload data
-            self.add_payload_data(mapped_key, payload_contents, request_data)
+                # Get the key mapping
+                mapped_key = self.node_mapping[key]
+                # Now we add the payload data
+                self.add_payload_data(mapped_key, payload_contents, request_data)
 
-            payload = {
-                "data": json.dumps(payload_contents)
-            }
+                payload = {
+                    "data": json.dumps(payload_contents)
+                }
 
-            if key != "image":
-                response = requests.post(self.get_endpoint("tile"), headers=self.get_headers(), data=payload)
-            else:
-                response = self.upload_image(value, payload)
+                if key  == "url":
+                    response = self.upload_image(value, payload)
+                else:
+                    session = requests.Session()
+                    endpoint = self.get_endpoint("tile")
+                    response = session.post(endpoint, headers=self.get_headers(referrer=endpoint), data=payload)
 
             if response.status_code in [500]:
                 # TODO - Delete the tile?
@@ -565,4 +571,3 @@ class ArchesAPI:
         response_dict["content"] = f"Success! for inserting {resource_id}"
 
         return response_dict
-
