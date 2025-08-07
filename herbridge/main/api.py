@@ -287,8 +287,7 @@ class ArchesAPI:
         parent_payload = {
             'data': json.dumps(base_parent_payload, ensure_ascii=False)
         }
-
-        parent_request = requests.post(self.get_endpoint("tile"), headers=self.get_headers(content_type="json"), data=parent_payload)
+        parent_request = requests.post(self.get_endpoint("tile"), headers=self.get_headers(content_type="json", referrer=self.get_endpoint("tile")), data=parent_payload)
 
         if parent_request.status_code == 200:
             parent_response = json.loads(parent_request.content)
