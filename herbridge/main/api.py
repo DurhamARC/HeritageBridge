@@ -138,8 +138,10 @@ class ArchesAPI:
     }
 
     def initialise_tokens(self):
-        self.login()
-        self.get_oauth_token()
+
+        if self.oauth_token is None or self.csrf_token is None or self.eamena_token is None:
+            self.login()
+            self.get_oauth_token()
 
     def get_endpoint(self, endpoint_id):
         """
