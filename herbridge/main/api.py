@@ -1,8 +1,11 @@
 import json
-import requests
 import logging
+import os
+import requests
 
+from datetime import datetime
 from django.conf import settings
+from PIL import Image
 from requests.auth import HTTPBasicAuth
 
 logger = logging.getLogger(__name__)
@@ -303,39 +306,43 @@ class ArchesAPI:
         """
 
         graph_id = self.nodes["FILE_UPLOAD"]["graph_id"]
-        image_url = "/home/jordan/Documents/github/HeritageBridgeDev/Black.png"
-        im = Image.open(image_url)
-        file_size_bytes = os.path.getsize(image_url)
+
+        media_split = image_data.split(settings.MEDIA_URL)[-1].lstrip('/')
+        full_path = os.path.join(settings.MEDIA_ROOT, media_split)
+        file_name = os.path.basename(full_path)
+
+        im = Image.open(full_path)
+        file_size_bytes = os.path.getsize(full_path)
 
         # Load in the base payload from a string
         payload_data = json.loads(payload["data"])
         # Get the image portion of the payload object
         image_payload = payload_data["data"][graph_id][0]
-
+        image_type = f"image/{im.format.lower()}"
         # Insert required values into the payload
         image_payload["size"] = file_size_bytes
-        image_payload["name"] = "image_1"
+        image_payload["name"] = file_name
         image_payload["height"] = im.size[1]
         image_payload["width"] = im.size[0]
         image_payload["lastModified"] = int(datetime.timestamp(datetime.now()))
-        payload_data["type"] = f"image/{im.format.lower()}"
+        payload_data["type"] = image_type
 
         payload["data"] = json.dumps(payload_data)
 
         files = {
             f"file-list_{graph_id}": (
-                "Black.png",
-                open(image_url, "rb"),
-                "image/png"
+                file_name,
+                open(full_path, "rb"),
+                image_type
             )
         }
 
 
         session = requests.Session()
+        headers = self.get_headers(referrer=self.get_endpoint("tile"))
         upload_response = session.post(
             self.get_endpoint("tile"),
-            headers=self.get_headers(),
-            # referrer=self.get_endpoint("tile"),
+            headers=headers,
             data=payload,
             files=files
         )
