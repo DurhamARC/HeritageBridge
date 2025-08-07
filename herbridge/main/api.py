@@ -390,6 +390,29 @@ class ArchesAPI:
         payload["data"][graphid] = data_value
 
 
+    def relate_resources(self, image_id, place_id):
+        """
+        Creates a resource relationship between a Heritage Place object, and a
+            Information Resource (Image) object.
+
+        :param image_id: Resource UUID for the Information Resource (image) object
+        :param place_id: Resource UUID for the Heritage Place resource object
+        :returns status_code: The response status code
+        """
+        endpoint = self.get_endpoint("relation")
+        data = {
+            "relationship_properties[datestarted]": "",
+            "relationship_properties[dateended]": "",
+            "relationship_properties[relationshiptype]": "http://www.cidoc-crm.org/cidoc-crm/BM.PX_is_related_to",
+            "relationship_properties[notes]": "",
+            "instances_to_relate[]": place_id,
+            "root_resourceinstanceid": image_id
+        }
+
+        response = requests.post(endpoint, headers=self.get_headers(referrer=endpoint), data=data)
+        return response.status_code
+
+
     def search_resources(self, request):
         """
 
