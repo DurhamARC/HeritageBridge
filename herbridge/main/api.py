@@ -53,7 +53,7 @@ class ArchesAPI:
     rev_node_mapping = {
         "DATE_OF_FILE": "captureDate",
         "DESCRIPTION": "caption",
-        "FILE_UPLOAD": {"image", "url"},
+        "FILE_UPLOAD": "url",
         "SPATIAL_COORDINATES_GEOMETRY": {"lat", "long"}
     }
 
