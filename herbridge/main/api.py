@@ -210,7 +210,7 @@ class ArchesAPI:
 
     def get_oauth_token(self):
         """
-
+            Call for and set the oauth token in this object.
         """
         endpoint = self.get_endpoint("oauth")
 
@@ -362,7 +362,6 @@ class ArchesAPI:
 
         # Coordinates are handled differently
         if node_name == "SPATIAL_COORDINATES_GEOMETRY":
-            # TODO - Implement
             node["features"][0]["geometry"]["coordinates"] = [request_data["latitude"], request_data["longitude"]]
             value = None
         elif node_name == "FILE_UPLOAD":
