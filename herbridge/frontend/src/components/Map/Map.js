@@ -106,8 +106,8 @@ export default class extends React.Component {
           const coordinates = resource.geometry.coordinates
           return (
             <Marker
-              longitude={coordinates[0]}
-              latitude={coordinates[1]}>
+              longitude={coordinates[1]}
+              latitude={coordinates[0]}>
               <Pin
                 index={index}
                 opacity={!selectedResource ? 1 : (resource !== selectedResource ? 0 : 1)}
