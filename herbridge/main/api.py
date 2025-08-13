@@ -462,7 +462,10 @@ class ArchesAPI:
                 "resource_name": hit_data["displayname"],
                 "resource_type": "Heritage Place",  # What should this actually say for Heritage Place
                 "resource_description": hit_data["displaydescription"],
-                "geometry": {"coordinates": [hit_coords["lat"], hit_coords["lon"]]}
+                "coordinates": {
+                    "latitude": hit_coords["lat"],
+                    "longitude": hit_coords["lon"]
+                }
             }
 
             response_hits.append(hit_dict)

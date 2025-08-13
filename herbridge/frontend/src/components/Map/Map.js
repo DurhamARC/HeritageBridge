@@ -103,11 +103,10 @@ export default class extends React.Component {
     return (
       <div>
         {resources.map((resource, index) => {
-          const coordinates = resource.geometry.coordinates
           return (
             <Marker
-              longitude={coordinates[1]}
-              latitude={coordinates[0]}>
+              longitude={resource.coordinates.longitude}
+              latitude={resource.coordinates.latitude}>
               <Pin
                 index={index}
                 opacity={!selectedResource ? 1 : (resource !== selectedResource ? 0 : 1)}
