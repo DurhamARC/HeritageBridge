@@ -171,35 +171,20 @@ class ArchesAPI:
         }
         return data
 
-    def get_headers(self, referrer=None, oauth=False, content_type=None):
+    def get_headers(self, referrer=None, oauth=False):
         """
-        Generates headers required to pass data to the Eamena instance.
-        Used to insert the authentication data, etc.
+            Generates and returns the payload dictionary with required origin, keys and
+            session cookies.
+
+            :param referrer: str - Referrer URL string to include as referer
+            :param oauth: bool - Whether to include oauth key
         """
-        headers = {
-            'Origin': f'{settings.EAMENA_TARGET}',
-            'Cookie': f'csrftoken={self.csrf_token}; eamena={self.eamena_token};'
-        }
 
-        if oauth:
-            headers["Authorization"] = f"Bearer {self.oauth_token}"
-
-        if content_type:
-            if content_type == "json":
-                headers["Content-Type"] = "application/json"
-            elif content_type == "form":
-                headers["Content-Type"] = "multipart/form-data"
-            else:
-                # TODO - Error messaging etc.
-                pass
-
-        # TODO - A lof of these headers are possibly not useful.
-        headers = {
+        base_headers = {
             'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0',
             'Accept': '*/*',
             'Accept-Language': 'en-GB,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate',
-            'Referer': '',
             'X-Requested-With': 'XMLHttpRequest',
             'Connection': 'keep-alive',
             'Origin': f'{settings.EAMENA_TARGET}',
@@ -209,10 +194,12 @@ class ArchesAPI:
         }
 
         if referrer:
-            headers['Referer'] = referrer
+            base_headers['Referer'] = referrer
 
-        return headers
+        if oauth:
+            base_headers["Authorization"] = f"Bearer {self.oauth_token}"
 
+        return base_headers
 
     def get_oauth_token(self):
         """
