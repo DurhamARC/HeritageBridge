@@ -140,9 +140,15 @@ class ArchesAPI:
         "Person-Organisation": "e98e1cee-c38b-11ea-9026-02e7594ce0a0"
     }
 
-    def initialise_tokens(self):
+    def initialise_tokens(self, regenerate=True):
+        """
+            Initialises the tokens, which also initiates the login function used to
+            call for and store the csrf, session and oauth tokens from EAMENA.
 
-        if self.oauth_token is None or self.csrf_token is None or self.eamena_token is None:
+            :param regenerate: Bool - Provides option to force regenerate keys
+        """
+        # If any keys are none, we regen
+        if all([self.oauth_token, self.csrf_token, self.eamena_token]) or regenerate:
             self.login()
             self.get_oauth_token()
 
