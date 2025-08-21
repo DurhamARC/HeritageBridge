@@ -501,6 +501,30 @@ class ArchesAPI:
         return response_dict
 
 
+    @staticmethod
+    def validate_image_request(request_data):
+        """
+            Does some validation on the image upload request payload, then either returns None,
+            or a message.
+
+            :param request_data: dict containing the request data values
+            :returns: None or a string containing error message
+        """
+        error = None
+        # Determine if any keys are missing.
+        key_list = {"id", "latitude", "longitude", "caption", "captureDate", "url", "related_to"}
+        used_keys = {item[0] for item in request_data.items()}
+
+        missing_keys = [key for key, value in request_data.items() if value is None]
+
+        if missing_keys or request_data is None:
+            error = f"Missing values for key(s): {missing_keys}"
+
+        if key_list != used_keys or len(used_keys) != len(key_list):
+            error = f"Incorrect keys used: {used_keys}. Should be {key_list}."
+
+        return error
+
 
     def submit_image_report(self, request_data):
         """
