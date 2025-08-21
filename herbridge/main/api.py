@@ -153,9 +153,16 @@ class ArchesAPI:
 
     def get_endpoint(self, endpoint_id):
         """
+        Generates a base URL for a specific endpoint based on a given endpoint ID, and using
+        the site URL value.
+
         :param endpoint_id: str - The endpoint  string identifier to return on
         """
-        return f"{settings.EAMENA_TARGET}{self.endpoints[endpoint_id]}"
+        available_endpoints = self.endpoints.keys()
+        if endpoint_id in available_endpoints:
+            return f"{settings.EAMENA_TARGET}{self.endpoints[endpoint_id]}"
+        else:
+            raise ValueError(f"Given endpoint ID string value ({endpoint_id} does not match expected: {available_endpoints}")
 
     def get_login_data(self):
         """
