@@ -10,7 +10,7 @@ from requests.auth import HTTPBasicAuth
 
 class ArchesAPI:
     """
-
+        Class to manage state for connection to an EAMENA Arches instance.
     """
     logger = logging.getLogger(__name__)
 
