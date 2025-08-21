@@ -430,7 +430,7 @@ class ArchesAPI:
                         "coordinates": [
                             coordinates
                         ],
-                        "type": "Polygon" if len(coordinates) > 1 else "Point"
+                        "type": "Polygon"
                     }
                 }
             ]
