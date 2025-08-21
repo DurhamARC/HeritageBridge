@@ -566,3 +566,23 @@ class ArchesAPI:
         response_dict["content"] = f"Success! for inserting {resource_id}"
 
         return response_dict
+
+
+    def delete_resource(self, resource_id):
+        """
+        Delete a specific resource based on a given ID.
+
+        :param resource_id: The resource ID to delete on.
+        :returns: result - The delete request response
+        """
+
+        endpoint = f"{self.get_endpoint('resource')}/{resource_id}"
+
+        session = requests.Session()
+
+        result = session.delete(endpoint, headers=self.get_headers(referrer=endpoint))
+
+        if result.status_code != 200:
+            self.logger.error(result.content.decode('unicode_escape'))
+
+        return result
