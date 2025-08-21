@@ -528,8 +528,9 @@ class ArchesAPI:
 
     def submit_image_report(self, request_data):
         """
-        TODO - Consider multiple images per object, or is it a 1-1 relationship.
-        Data in: latitude, longitude, caption, captureDate, image
+        Receives and submits an image to EAMENA from the requqest_data.
+
+        Data in: latitude, longitude, caption, captureDate, image, related_to
         HerBridgeImage:
             id, url, thumbnailUrl
             latitude, longitude, captureDate, caption
@@ -544,85 +545,93 @@ class ArchesAPI:
             "content": ""
         }
 
-        # Determine if any keys are missing.
-        key_list = {"id", "latitude", "longitude", "caption", "captureDate", "url", "related_to"}
-        used_keys = {item[0] for item in request_data.items()}
-        error = None
+        validation_error = self.validate_image_request(request_data)
 
-        if key_list != used_keys or len(used_keys) != len(key_list):
-            error = f"Incorrect keys used: {used_keys}. Should be {key_list}."
-
-        missing_keys = [key for key, value in request_data.items() if value is None]
-
-        if missing_keys or request_data is None:
-            error = f"Missing values for key(s): {missing_keys}"
-
-        if error:
-            response_dict["content"] = error
+        if validation_error:
+            response_dict["message"] = validation_error
             return response_dict
 
         inserted_parents = {}
         for key, value in request_data.items():
+            error = None
+
             if value is None:
-                # TODO - Remove this line! or modify for just long
                 continue
             elif key in ["longitude", "id"]:
                 # We skip these
                 continue
             elif key == "related_to":
-                response = self.relate_resources(resource_id, value)
+                status_code = self.relate_resources(resource_id, value)
             else:
                 mapped_node = self.node_mapping[key]
                 nodegroup_id = self.nodes[mapped_node]["nodegroup_id"]
 
                 if nodegroup_id not in inserted_parents.keys() and key == "captureDate":
-                    inserted_parents[nodegroup_id] = self.get_parent_id(nodegroup_id, resource_id)
-                    parent_id = inserted_parents[nodegroup_id]
-                    nodegroup_id = self.nodes[mapped_node]["graph_id"]
-                    formatted_date = datetime.utcfromtimestamp(value)
-                    value = formatted_date.strftime('%Y-%m-%d')
-                    request_data[key] = value
+                    parent_id = self.get_parent_id(nodegroup_id, resource_id)
+
+                    if parent_id:
+                        # Set that we have attempted to insert this ID
+                        inserted_parents[nodegroup_id] = parent_id
+                        nodegroup_id = self.nodes[mapped_node]["graph_id"]
+                        formatted_date = datetime.utcfromtimestamp(value)
+                        value = formatted_date.strftime('%Y-%m-%d')
+                        request_data[key] = value
+                    else:
+                        error = "Unable to get parent ID information"
                 else:
-                    # We either set the parent ID to none, or use the pregenerated one if required
                     parent_id = inserted_parents[nodegroup_id] if inserted_parents.get(nodegroup_id) else None
 
-                payload_contents = {
-                    "tileid": "",
-                    "data": {},
-                    "nodegroup_id": nodegroup_id,
-                    # Should be inside the loop?
-                    "parenttile_id": parent_id,
-                    "resourceinstance_id": resource_id, "sortorder": 0, "tiles": {}
-                }
+                if not error:
+                    payload_contents = {
+                        "tileid": "",
+                        "data": {},
+                        "nodegroup_id": nodegroup_id,
+                        # Should be inside the loop?
+                        "parenttile_id": parent_id,
+                        "resourceinstance_id": resource_id, "sortorder": 0, "tiles": {}
+                    }
 
-                # Get the key mapping
-                mapped_key = self.node_mapping[key]
-                # Now we add the payload data
-                self.add_payload_data(mapped_key, payload_contents, request_data)
+                    # Get the key mapping
+                    mapped_key = self.node_mapping[key]
+                    # Now we add the payload data
+                    self.add_payload_data(mapped_key, payload_contents, request_data)
 
-                payload = {
-                    "data": json.dumps(payload_contents)
-                }
+                    payload = {
+                        "data": json.dumps(payload_contents)
+                    }
 
-                if key  == "url":
-                    response = self.upload_image(value, payload)
+                    if key  == "url":
+                        response = self.upload_image(value, payload)
+                    else:
+                        session = requests.Session()
+                        endpoint = self.get_endpoint("tile")
+                        response = session.post(endpoint, headers=self.get_headers(referrer=endpoint), data=payload)
+
+                    try:
+                        status_code = response.status_code
+                    except AttributeError as e:
+                        if type(response) == int:
+                            status_code = response
+                        else:
+                            raise ValueError("Image report response has no status code.")
                 else:
-                    session = requests.Session()
-                    endpoint = self.get_endpoint("tile")
-                    response = session.post(endpoint, headers=self.get_headers(referrer=endpoint), data=payload)
+                    # We should just break the loop if error has been set
+                    break
 
-            if response.status_code in [500]:
-                # TODO - Delete the tile?
-                # self.delete_resource()
-                with open("error.html", 'w') as f:
-                    f.write(f"{response.content.decode('unicode_escape')}")
-            else:
-                pass
+            # If any of these fail, we delete the resource and return the message
+            if status_code != 200 or error:
+                self.delete_resource(resource_id)
 
-        # If no errors here, we can just go ahead and set status messages and return
-        response_dict["status"] = True
-        response_dict["content"] = f"Success! for inserting {resource_id}"
+                final_error = error if error else response.content.decode('unicode_escape')
 
+                self.logger.error(final_error)
+                response_dict["message"] = f"Failed to insert {resource_id}."
+                response_dict["status_code"] = status_code
+                return response_dict
+
+        # If no errors here, we can just go ahead and set status message/code and return
+        response_dict["message"] = f"Success! for inserting {resource_id}"
+        response_dict["status_code"] = 201
         return response_dict
 
 

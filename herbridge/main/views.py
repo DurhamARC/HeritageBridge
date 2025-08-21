@@ -123,7 +123,6 @@ def get_eamena_resource_for_polygon(request):
         raise e
 
 
-
 def get_images_for_polygon(request):
     if request.method != "POST":
         raise Http404()
@@ -146,10 +145,10 @@ def submit_image_for_resource(request):
         response = arches_api.submit_image_report(json.loads(request.body))
 
         if response["status_code"] == 201:
-            return JsonResponse(response.json(), safe=False)
+            return JsonResponse(status=201, data={"message": response["message"]})
         else:
-            response["status_code"] = 200
-            return response
+            # If not 201, then it's some form of error.
+            return JsonResponse(status=response["status_code"], data={"message": response["message"]})
     else:
         return JsonResponse(status=400, data={"message": "Missing request body"})
 
