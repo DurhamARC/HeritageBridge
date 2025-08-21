@@ -8,12 +8,12 @@ from django.conf import settings
 from PIL import Image
 from requests.auth import HTTPBasicAuth
 
-logger = logging.getLogger(__name__)
-
 class ArchesAPI:
     """
 
     """
+    logger = logging.getLogger(__name__)
+
     # Authorisation tokens for the web/api
     oauth_token = None  # Arches authorisation token
     csrf_token = None  # The CSRF token
@@ -262,6 +262,9 @@ class ArchesAPI:
 
         login_request = session.post(login_endpoint, data=login_data, headers=headers)
 
+        if login_request.status_code in [403, 500]:
+            self.logger.error(login_request.content.decode('unicode_escape'))
+
         response["status"] = login_request.status_code
         request_cookies = login_request.request.headers["cookie"]
 
@@ -377,7 +380,7 @@ class ArchesAPI:
             unfinished_string = json.dumps(node)
         else:
             error = f"Payload data must be str, list or dict. Instead got {type(node)}: {node}"
-            logger.info(error)
+            self.logger.error(error)
             raise ValueError(error)
 
         # We use % formatting so we can convert dict to str without f
