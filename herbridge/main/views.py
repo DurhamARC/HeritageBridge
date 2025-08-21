@@ -1,13 +1,11 @@
 import json
 import logging
-import requests
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse, Http404
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import GEOSGeometry
 from main.models import get_model
 from main.api import ArchesAPI
