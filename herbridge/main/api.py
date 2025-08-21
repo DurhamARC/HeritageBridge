@@ -424,13 +424,23 @@ class ArchesAPI:
 
     def search_resources(self, request):
         """
+        Performs a request to the Arches instance at EAMENA_TARGET to search
+        EAMENA resources based on a given set of coordinates (screen boundary).
 
         :param request: The request object containing coordinate data
         :returns: A dict containing the status code and any hits
         """
 
+        response_dict = {
+            "status_code": 0,
+            "message": "",
+            "data": []
+        }
+        # Get the coordinates from the request as a list
         coordinates = json.loads(request.body)["coordinates"][0]
-        url = settings.EAMENA_TARGET + "/search/resources"
+
+        # Building the URL
+        url = self.get_endpoint("search_resources")
         map_filter = {
             "type": "FeatureCollection",
             "features": [
@@ -450,10 +460,26 @@ class ArchesAPI:
         url += resource_filter
 
         response = requests.get(url)
-        result_json = json.loads(response.text)
-        result_hits = result_json["results"]["hits"]["hits"]
 
-        response_hits = []
+        if response.status_code != 200:
+            error_message = f"An error occurred ({response.status_code}): {response.reason}."
+            response_dict["message"] = error_message
+            self.logger.error(error_message)
+            return response_dict
+        else:
+            response_dict["status_code"] = response.status_code
+
+        result_json = json.loads(response.text)
+
+        try:
+            result_hits = result_json["results"]["hits"]["hits"]
+        except KeyError as e:
+            response_dict["status_code"] = 500
+            response_dict["message"] = f"There was a problem with the returned data."
+            # Log the error more specifically
+            self.logger.error(f"{response_dict['status_code']}: {e} - {response_dict['message']}")
+            return response_dict
+
         for hit in result_hits:
             hit_id = hit["_id"]
             hit_data = hit["_source"]
@@ -471,12 +497,10 @@ class ArchesAPI:
                 }
             }
 
-            response_hits.append(hit_dict)
+            response_dict["data"].append(hit_dict)
+        return response_dict
 
-        return {
-            "status_code": response.status_code if response.status_code else 500,
-            "hits": response_hits
-        }
+
 
     def submit_image_report(self, request_data):
         """

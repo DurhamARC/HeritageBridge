@@ -106,9 +106,13 @@ def get_eamena_resource_for_polygon(request):
             arches_api.initialise_tokens()
             # Execute the search resource query
             response = arches_api.search_resources(request)
+            status_code = response["status_code"]
 
-            if response["status_code"] == 200:
-                return JsonResponse(response["hits"], safe=False)
+            if status_code == 200:
+                return JsonResponse(response["data"], status=status_code, safe=False)
+            elif status_code in [500, 403]:
+                # For other errors, error messaging is handled by the search_resources function
+                return JsonResponse(status=status_code, data={"message": "Eamena failed to provide resources, check polygon"}, safe=False)
             else:
                 return JsonResponse(status=400, data={"message": "Eamena failed to provide resources, check polygon"})
         else:
