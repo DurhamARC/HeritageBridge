@@ -241,26 +241,25 @@ class ArchesAPI:
 
             :returns response: The request's response object.
         """
-        login_endpoint = self.get_endpoint("log_in")
         response = {
             "status": 0,
             "session": None
         }
-
+        index_endpoint = self.get_endpoint("index")
         session = requests.Session()
         # Request the homepage to begin a session.
-        session.get(self.get_endpoint("index"))
+        session.get(index_endpoint)
 
         # Set the Object's internal csrf token for later use
         self.csrf_token = session.cookies.get('csrftoken')
 
         # Get the pregenerated headers
-        headers = self.get_headers(referrer=login_endpoint)
+        headers = self.get_headers(referrer=index_endpoint)
 
         # Set the data payload to be sent, including csrf token, username and password
         login_data = self.get_login_data()
 
-        login_request = session.post(login_endpoint, data=login_data, headers=headers)
+        login_request = session.post(self.get_endpoint("log_in"), data=login_data, headers=headers)
 
         if login_request.status_code in [403, 500]:
             self.logger.error(login_request.content.decode('unicode_escape'))
