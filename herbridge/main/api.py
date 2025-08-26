@@ -35,7 +35,7 @@ class ArchesAPI:
         "tile": "/tile",  # For interacting with tiles to insert data/retrieve IDs
         "search_resources": "/search/resources",
         "get_descriptors": "/resource/descriptors/",
-        "relation": "resource/related/" # For adding related resources
+        "relation": "/resource/related/" # For adding related resources
     }
 
     # Mapping value names from AMAL -> EAMENA Arches values
