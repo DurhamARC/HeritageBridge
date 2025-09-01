@@ -650,7 +650,7 @@ class ArchesAPI:
         :param resource_id: The resource ID to delete on.
         :returns: result - The delete request response
         """
-        endpoint = f"{self.get_endpoint('resource')}/{resource_id}"
+        endpoint = f"{self.get_endpoint('resource')}{resource_id}"
         session = requests.Session()
         result = session.delete(endpoint, headers=self.get_headers(referrer=endpoint))
         self.logger.error(result.content.decode('unicode_escape'))
