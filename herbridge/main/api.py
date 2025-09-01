@@ -653,7 +653,6 @@ class ArchesAPI:
         endpoint = f"{self.get_endpoint('resource')}{resource_id}"
         session = requests.Session()
         result = session.delete(endpoint, headers=self.get_headers(referrer=endpoint))
-        self.logger.error(result.content.decode('unicode_escape'))
 
         if result.status_code != 200:
             self.logger.error(result.content.decode('unicode_escape'))
