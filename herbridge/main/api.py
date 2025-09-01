@@ -620,12 +620,20 @@ class ArchesAPI:
 
             # If any of these fail, we delete the resource and return the message
             if status_code != 200 or error:
+                response_error = json.loads(response.text)["message"]
+
+                # Repackaging the error message for the user.
+                if "Multiple Tiles for Cardinality" in response_error:
+                    response_dict["message"] = f"An entry already exists for resource (Cardinality Error): {resource_id}"
+                else:
+                    response_dict["message"] = f"Failed to insert {resource_id}."
+
                 self.delete_resource(resource_id)
 
+                # We either log the response error, or the error we have set here.
                 final_error = error if error else response.content.decode('unicode_escape')
-
                 self.logger.error(final_error)
-                response_dict["message"] = f"Failed to insert {resource_id}."
+
                 response_dict["status_code"] = status_code
                 return response_dict
 
@@ -642,11 +650,8 @@ class ArchesAPI:
         :param resource_id: The resource ID to delete on.
         :returns: result - The delete request response
         """
-
         endpoint = f"{self.get_endpoint('resource')}/{resource_id}"
-
         session = requests.Session()
-
         result = session.delete(endpoint, headers=self.get_headers(referrer=endpoint))
 
         if result.status_code != 200:
