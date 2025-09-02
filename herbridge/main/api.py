@@ -156,7 +156,8 @@ class ArchesAPI:
         Generates a base URL for a specific endpoint based on a given endpoint ID, and using
         the site URL value.
 
-        :param endpoint_id: str - The endpoint  string identifier to return on
+        :param endpoint_id: str - The endpoint string identifier to return using
+        :returns: str - A formatted string of a URL containing the site URL and the specified endpoint
         """
         available_endpoints = self.endpoints.keys()
         if endpoint_id in available_endpoints:
@@ -354,11 +355,12 @@ class ArchesAPI:
 
     def add_payload_data(self, node_name, payload, request_data):
         """
-        Adds a given value to a
+        Formats a given payload with the relevant data from the request to be used as a part
+        of an insertion request.
 
-        :param payload: str/dict -
-        :param node_name: str -
-        :param request_data:
+        :param node_name: str - Node name to specify which data to request.
+        :param payload: str/dict - The given payload dictionary/string for formatting.
+        :param request_data: The request data received which contains relevant image data provided by AMAL.
         """
 
         node = self.nodes[node_name]["payload"]
