@@ -575,7 +575,7 @@ class ArchesAPI:
                         # Set that we have attempted to insert this ID
                         inserted_parents[nodegroup_id] = parent_id
                         nodegroup_id = self.nodes[mapped_node]["graph_id"]
-                        formatted_date = datetime.utcfromtimestamp(value)
+                        formatted_date = datetime.fromtimestamp(value)
                         value = formatted_date.strftime('%Y-%m-%d')
                         request_data[key] = value
                     else:
