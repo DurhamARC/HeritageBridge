@@ -5,7 +5,7 @@ import requests
 
 from datetime import datetime
 from django.conf import settings
-from PIL import Image
+from PIL import Image as pil_image
 from requests.auth import HTTPBasicAuth
 
 class ArchesAPI:
@@ -314,7 +314,7 @@ class ArchesAPI:
         full_path = os.path.join(settings.MEDIA_ROOT, media_split)
         file_name = os.path.basename(full_path)
 
-        im = Image.open(full_path)
+        im = pil_image.open(full_path)
         file_size_bytes = os.path.getsize(full_path)
 
         # Load in the base payload from a string
