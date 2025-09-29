@@ -393,13 +393,16 @@ class ArchesAPI:
         # We use % formatting so we can convert dict to str without f
         if value:
             if node_name == "DESCRIPTION":
-                formatted_string = unfinished_string % (value, value)
+                formatted_string = self.description_payload(request_data["id"], unfinished_string, value)
             else:
                 formatted_string = unfinished_string % value
         else:
             formatted_string = unfinished_string
 
-        data_value = formatted_string if dtype == str else json.loads(formatted_string)
+        if node_name == "DESCRIPTION":
+            data_value = formatted_string
+        else:
+            data_value = formatted_string if dtype == str else json.loads(formatted_string)
 
         graphid = self.nodes[node_name]["graph_id"]
         payload["data"][graphid] = data_value
