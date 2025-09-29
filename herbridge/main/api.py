@@ -2,9 +2,11 @@ import json
 import logging
 import os
 import requests
+import yaml
 
 from datetime import datetime
 from django.conf import settings
+from main.models import Report, Image
 from PIL import Image as pil_image
 from requests.auth import HTTPBasicAuth
 
@@ -425,6 +427,56 @@ class ArchesAPI:
         response = requests.post(endpoint, headers=self.get_headers(referrer=endpoint), data=data)
         return response.status_code
 
+    @staticmethod
+    def description_payload(image_id, description_payload, description_text):
+        """
+            Inserts the data for an image with Report/Resource information.
+            Will query for accompanying Report/Resource data and inserts it into a single
+            readable string, including original image caption text.
+
+            :param image_id: str - UUID of the image for data (report/resource) selection
+            :param description_payload: str - Payload formatted for EAMENA insertion, to format with
+            :param description_text: str - The text to insert as the actual image description
+            :returns: Dict containing various resource data from Report/Resource objects, with image desc
+        """
+        description_payload = json.loads(description_payload)
+
+        image = Image.objects.get(id=image_id)
+        # Get the report through a field lookup, in descending order of creation time
+        report = (Report.objects
+                  .filter(resources__images=image)
+                  .order_by('-createdAt')
+                  .first())
+        resource = report.resources.filter(images=image).first()
+
+        description_data = {
+            "CREATED_AT": report.createdAt,
+            "ASSESSOR": {
+                "Name": report.assessor.name,
+                "Email": report.assessor.email
+            },
+            "RESOURCE_INFO": {
+                "Name": resource.name,
+                "Type": resource.type,
+                "Condition": resource.condition,
+                "HAZARD_INFO": {
+                    "Hazards": resource.hazards,
+                    "Safety_Hazards": resource.safetyHazards,
+                    "Intervention_Required": resource.interventionRequired
+                },
+                "Notes": resource.notes
+            },
+            "IMAGE_DESCRIPTION": description_text
+        }
+        # Dump to more readable format, and replace the newlines with compatible ones/spaces for formatting
+        desc_string = yaml.dump(description_data, sort_keys=False)
+        disp_string = desc_string.replace("\n", " | ")
+        # Set the string payload for both supported languages
+
+        for lang in settings.SUPPORTED_ARCHES_LANGUAGES:
+            description_payload[lang]['value'] = disp_string
+
+        return description_payload
 
     def search_resources(self, request):
         """
