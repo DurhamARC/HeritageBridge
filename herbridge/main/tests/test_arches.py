@@ -19,6 +19,30 @@ class ArchesAPITestCase(TestCase):
         within api.py for testing connection to the Arches EAMENA instance etc.x
     """
 
+    def test_get_header_tokens(self):
+        """
+            Tests setting and retrieving of the header auth/tokens/referrer
+            from the get_headers function.
+        """
+        test_api = ArchesAPI()
+
+        # Setting some values on the object
+        referrer_value = "refer_test"
+        test_api.oauth_token = "oauth"
+        test_api.csrf_token = "csrf"
+        test_api.eamena_token = "eamena"
+
+        # Request the headers from the function, then extract the relevant data.
+        result = test_api.get_headers(referrer=referrer_value, oauth=test_api.oauth_token)
+        cookie = result["Cookie"]
+        result_csrf = cookie.split("csrftoken=")[1].split(";")[0]
+        result_eamena = cookie.split("eamena=")[1].split(";")[0]
+
+        self.assertEquals(result_csrf, test_api.csrf_token)
+        self.assertEquals(result_eamena, test_api.eamena_token )
+        self.assertEquals(result["Referer"], referrer_value)
+        self.assertEquals(result["Authorization"], f"Bearer {test_api.oauth_token}")
+
     def test_description_payload(self):
         """
             Selects the Report object associated with the given image upload.
