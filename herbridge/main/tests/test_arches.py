@@ -19,6 +19,34 @@ class ArchesAPITestCase(TestCase):
         within api.py for testing connection to the Arches EAMENA instance etc.x
     """
 
+    def test_get_endpoints(self):
+        """
+            Tests retrieval of endpoint string value dictionary entries.
+        """
+        test_api = ArchesAPI()
+        all_endpoints = test_api.endpoints.keys()
+
+        # Do the retrieval for every endpoint
+        for endpoint in all_endpoints:
+            result = test_api.get_endpoint(endpoint)
+
+            # Handling missing/existing '/' splitting
+            first_split = result.split("/")[-1]
+            second_split = result.split("/")[-2]
+            split_result = first_split if first_split else second_split
+
+            # Check match exists
+            current_endpoint = test_api.endpoints[endpoint]
+            self.assertTrue(split_result in current_endpoint)
+
+        # Testing that a bad string will raise an error, and message
+        bad_string = "BAD_STRING"
+        with self.assertRaises(ValueError) as val_err:
+            test_api.get_endpoint(bad_string)
+
+        self.assertTrue(f"{bad_string} does not match expected:" in str(val_err.exception))
+
+
     def test_get_header_tokens(self):
         """
             Tests setting and retrieving of the header auth/tokens/referrer
