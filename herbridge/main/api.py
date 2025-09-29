@@ -185,6 +185,7 @@ class ArchesAPI:
 
             :param referrer: str - Referrer URL string to include as referer
             :param oauth: bool - Whether to include oauth key
+            :returns: Dictionary containing header data, built fron base_headers
         """
 
         base_headers = {
@@ -301,11 +302,12 @@ class ArchesAPI:
 
     def upload_image(self, image_data, payload):
         """
-        Handles uploading
+        Handles uploading of image data, prepares the payload, as there are special
+        steps required for getting the correct variables: size etc.
 
         :param image_data:
         :param payload: dict - The payload for formatting and insertion
-        :returns:
+        :returns: The upload response object
         """
 
         graph_id = self.nodes["FILE_UPLOAD"]["graph_id"]
@@ -403,7 +405,7 @@ class ArchesAPI:
 
     def relate_resources(self, image_id, place_id):
         """
-        Creates a resource relationship between a Heritage Place object, and a
+        Creates a resource relationship between a Heritage Place object, and an
             Information Resource (Image) object.
 
         :param image_id: Resource UUID for the Information Resource (image) object
@@ -432,7 +434,6 @@ class ArchesAPI:
         :param request: The request object containing coordinate data
         :returns: A dict containing the status code and any hits
         """
-
         response_dict = {
             "status_code": 0,
             "message": "",
@@ -530,7 +531,7 @@ class ArchesAPI:
 
     def submit_image_report(self, request_data):
         """
-        Receives and submits an image to EAMENA from the requqest_data.
+        Receives and submits an image to EAMENA from the request_data.
 
         Data in: latitude, longitude, caption, captureDate, image, related_to
         HerBridgeImage:
