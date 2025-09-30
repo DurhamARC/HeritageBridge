@@ -149,7 +149,7 @@ class ArchesAPI:
             :param regenerate: Bool - Provides option to force regenerate keys
         """
         # If any keys are none, we regen
-        if all([self.oauth_token, self.csrf_token, self.eamena_token]) or regenerate:
+        if not all([self.oauth_token, self.csrf_token, self.eamena_token]) or regenerate:
             self.login()
             self.get_oauth_token()
 
