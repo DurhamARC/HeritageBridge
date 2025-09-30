@@ -1,6 +1,7 @@
 import django
 import json
 import os
+import random
 import re
 import yaml
 
@@ -121,6 +122,7 @@ class ArchesAPITestCase(TestCase):
 
             # Should match the expected result above
             self.assertEquals(yaml_data["RESOURCE_INFO"], expected_data["RESOURCE_INFO"])
+            self.assertEquals(yaml_data["IMAGE_DESCRIPTION"], expected_data["IMAGE_DESCRIPTION"])
 
         # Testing that an empty Image result will return a
         with patch("main.api.Image.objects.get") as mock_image, self.assertRaises(ValueError):
@@ -128,3 +130,56 @@ class ArchesAPITestCase(TestCase):
             arches_api.description_payload(image_id, desc_payload, description_text)
 
 
+    def test_validate_image_request(self):
+        """
+        Tests the ArchesAPI validate_image_request method.
+        Checks for missing, deleted and empty against the expected error message response.
+        """
+        all_keys = {"id":"", "latitude":"", "longitude":"", "caption":"", "captureDate":"", "url":"", "related_to":""}
+
+        # Testing missing key value usage for each key
+        for i in range(0, len(all_keys)):
+            key_copy = all_keys.copy()
+            current_key = list(all_keys.keys())[i]
+            key_copy[current_key] = "Placeholder"
+            result = ArchesAPI.validate_image_request(key_copy)
+
+            self.assertIn( "Missing values for key(s):", result)
+            self.assertNotIn(f"'{key_copy[current_key]}'", result)
+
+        # Deleting a random key and checking the output
+        missing_copy = all_keys.copy()
+        delete_val = random.choice(list(missing_copy.keys()))
+        missing_copy.update({key: "Placeholder" for key in missing_copy})
+        del missing_copy[delete_val]
+        result = ArchesAPI.validate_image_request(missing_copy)
+
+        # The key name should only appear in the help part of the error message
+        self.assertEqual(result.count(delete_val), 1)
+        self.assertIn("Incorrect keys used:", result)
+
+        # Testing error return on extra value insertion
+        delete_copy = all_keys.copy()
+        delete_copy["bad_key"] = "bad_value"
+        # Set values for every key
+        delete_copy.update({key: "Placeholder" for key in delete_copy})
+
+        result = ArchesAPI().validate_image_request(delete_copy)
+        self.assertIn("Incorrect keys used:", result)
+        self.assertIn("bad_key", result)
+
+        # Testing against expected non
+        new_copy = all_keys.copy()
+        for item in new_copy.keys():
+            new_copy[item] = "Placeholder"
+        result = ArchesAPI().validate_image_request(new_copy)
+        self.assertIsNone(result)
+
+        # Testing error return on bad data type arguments
+        test_values = [None, 1, ""]
+        for value in test_values:
+            result = ArchesAPI().validate_image_request(value)
+            self.assertIn("The request payload must be a dict", result)
+
+        result = ArchesAPI().validate_image_request({})
+        self.assertIn("The request payload is empty", result)
