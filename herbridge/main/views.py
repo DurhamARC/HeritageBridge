@@ -148,7 +148,7 @@ def submit_image_for_resource(request):
             return JsonResponse(status=201, data={"message": response["message"]})
         else:
             # If not 201, then it's some form of error.
-            return JsonResponse(status=response["status_code"], data={"message": response["message"]})
+            return JsonResponse(status=500, data={"message": response["message"]})
     else:
         return JsonResponse(status=400, data={"message": "Missing request body"})
 
