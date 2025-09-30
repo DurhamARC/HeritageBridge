@@ -183,3 +183,51 @@ class ArchesAPITestCase(TestCase):
 
         result = ArchesAPI().validate_image_request({})
         self.assertIn("The request payload is empty", result)
+
+    @patch("main.api.ArchesAPI.login")
+    @patch("main.api.ArchesAPI.get_oauth_token")
+    def test_initialise_tokens(self, mock_oauth, mock_login):
+        """
+        Ensures that the initialise_tokens method correctly attempts to run the required login and toiken
+        generation functions when it should be.
+        """
+        mock_oauth.return_value = None
+        mock_login.return_value = None
+
+        # Manually deciding if these should be called
+        # Only calls functions if regenerate set, or there is a value for all.
+        test_cases = [
+            # Regenerate = True, so values should not matter
+            {"values": [None, None, None], "regenerate": True, "should_call": True},
+            {"values": ["None", None, "None"], "regenerate": True, "should_call": True},
+            {"values": ["None", "None", "None"], "regenerate": True, "should_call": True},
+            # Regenerate = False, so value matters
+            {"values": ["None", "None", "None"], "regenerate": False, "should_call": False},
+            {"values": ["None", "None", None], "regenerate": False, "should_call": True},
+            {"values": ["None", None, None], "regenerate": False, "should_call": True},
+            {"values": [None, None, None], "regenerate": False, "should_call": True},
+        ]
+
+        for case in test_cases:
+            test_api = ArchesAPI()
+            test_api.oauth_token = case["values"][0]
+            test_api.csrf_token = case["values"][1]
+            test_api.eamena_token = case["values"][2]
+
+            # New case for each, to reset the called once
+            with self.subTest(case=case):
+                # Reset and rerun the function
+                mock_oauth.reset_mock(), mock_login.reset_mock()
+                test_api.initialise_tokens(regenerate=case["regenerate"])
+
+                # Checking the logic against expected values
+                self.assertEquals((not all(case["values"]) or case["regenerate"]), case["should_call"])
+
+                # Determine if we should or should not call, and check
+                if case["should_call"]:
+                    mock_oauth.assert_called_once()
+                    mock_login.assert_called_once()
+                else:
+                    mock_oauth.assert_not_called()
+                    mock_login.assert_not_called()
+
