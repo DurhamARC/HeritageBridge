@@ -585,7 +585,9 @@ class ArchesAPI:
         if key_list != used_keys or len(used_keys) != len(key_list):
             return f"Incorrect keys used: {used_keys}. Should be {key_list}."
 
-        missing_keys = [key for key, value in request_data.items() if not value]
+        # Remove nullable fields, we have already checked existence at this point
+        missing_keys = [key for key, value in request_data.items() if not value and key != "caption"]
+
         if missing_keys:
             return f"Missing values for key(s): {missing_keys}"
 

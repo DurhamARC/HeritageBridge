@@ -136,21 +136,30 @@ class ArchesAPITestCase(TestCase):
         Checks for missing, deleted and empty against the expected error message response.
         """
         all_keys = {"id":"", "latitude":"", "longitude":"", "caption":"", "captureDate":"", "url":"", "related_to":""}
+        placeholder_string = "Placeholder"
 
         # Testing missing key value usage for each key
         for i in range(0, len(all_keys)):
             key_copy = all_keys.copy()
             current_key = list(all_keys.keys())[i]
-            key_copy[current_key] = "Placeholder"
+            key_copy[current_key] = placeholder_string
             result = ArchesAPI.validate_image_request(key_copy)
 
             self.assertIn( "Missing values for key(s):", result)
             self.assertNotIn(f"'{key_copy[current_key]}'", result)
 
+        # Ensure that caption is possible when null
+        caption_test = all_keys.copy()
+        most_keys = [key for key in caption_test.keys() if key != "caption"]
+        for key in most_keys:
+            caption_test[key] = placeholder_string
+        result = ArchesAPI.validate_image_request(caption_test)
+        self.assertEquals(result, None)
+
         # Deleting a random key and checking the output
         missing_copy = all_keys.copy()
         delete_val = random.choice(list(missing_copy.keys()))
-        missing_copy.update({key: "Placeholder" for key in missing_copy})
+        missing_copy.update({key: placeholder_string for key in missing_copy})
         del missing_copy[delete_val]
         result = ArchesAPI.validate_image_request(missing_copy)
 
