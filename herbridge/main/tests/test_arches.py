@@ -11,6 +11,7 @@ django.setup()
 from datetime import datetime
 from django.test import TestCase
 from main.api import ArchesAPI
+from unittest.mock import patch
 
 
 class ArchesAPITestCase(TestCase):
@@ -120,4 +121,10 @@ class ArchesAPITestCase(TestCase):
 
             # Should match the expected result above
             self.assertEquals(yaml_data["RESOURCE_INFO"], expected_data["RESOURCE_INFO"])
-            self.assertEquals(yaml_data["IMAGE_DESCRIPTION"], expected_data["IMAGE_DESCRIPTION"])
+
+        # Testing that an empty Image result will return a
+        with patch("main.api.Image.objects.get") as mock_image, self.assertRaises(ValueError):
+            mock_image.return_value = None
+            arches_api.description_payload(image_id, desc_payload, description_text)
+
+

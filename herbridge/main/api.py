@@ -445,6 +445,10 @@ class ArchesAPI:
         description_payload = json.loads(description_payload)
 
         image = Image.objects.get(id=image_id)
+
+        if not image:
+            raise ValueError("Image not found.")
+
         # Get the report through a field lookup, in descending order of creation time
         report = (Report.objects
                   .filter(resources__images=image)
