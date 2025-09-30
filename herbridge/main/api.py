@@ -619,6 +619,10 @@ class ArchesAPI:
             response_dict["message"] = validation_error
             return response_dict
 
+        # Manually setting a caption string if there is no caption
+        if not request_data.get("caption"):
+            request_data["caption"] = "No caption."
+
         inserted_parents = {}
         for key, value in request_data.items():
             error = None
