@@ -572,20 +572,24 @@ class ArchesAPI:
             :param request_data: dict containing the request data values
             :returns: None or a string containing error message
         """
-        error = None
+
+        if type(request_data) is not dict:
+            return f"The request payload must be a dict, not {type(request_data)}"
+        elif len(request_data) == 0:
+            return "The request payload is empty"
+
         # Determine if any keys are missing.
         key_list = {"id", "latitude", "longitude", "caption", "captureDate", "url", "related_to"}
         used_keys = {item[0] for item in request_data.items()}
 
-        missing_keys = [key for key, value in request_data.items() if value is None]
-
-        if missing_keys or request_data is None:
-            error = f"Missing values for key(s): {missing_keys}"
-
         if key_list != used_keys or len(used_keys) != len(key_list):
-            error = f"Incorrect keys used: {used_keys}. Should be {key_list}."
+            return f"Incorrect keys used: {used_keys}. Should be {key_list}."
 
-        return error
+        missing_keys = [key for key, value in request_data.items() if not value]
+        if missing_keys:
+            return f"Missing values for key(s): {missing_keys}"
+
+        return None
 
 
     def submit_image_report(self, request_data):
