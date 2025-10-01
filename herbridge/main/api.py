@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import requests
+import time
 import yaml
 
 from datetime import datetime
@@ -744,6 +745,7 @@ class ArchesAPI:
         # If no errors here, we can just go ahead and set status message/code and return
         response_dict["message"] = f"Success! for inserting {resource_id}"
         response_dict["status_code"] = 201
+        time.sleep(1)
         return response_dict
 
 
