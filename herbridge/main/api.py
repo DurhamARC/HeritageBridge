@@ -722,7 +722,6 @@ class ArchesAPI:
                     # We should just break the loop if error has been set
                     break
 
-            session = requests.session()
             desc_response = session.get(self.get_endpoint("get_descriptors"))
 
             if desc_response.status_code != 200:
