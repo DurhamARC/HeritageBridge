@@ -453,7 +453,10 @@ class ArchesAPI:
                   .filter(resources__images=image)
                   .order_by('-createdAt')
                   .first())
-        resource = report.resources.filter(images=image).first()
+        try:
+            resource = report.resources.filter(images=image).first()
+        except AttributeError:
+            resource = None
 
         return report, resource
 
