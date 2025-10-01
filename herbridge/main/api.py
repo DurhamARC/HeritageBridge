@@ -85,6 +85,7 @@ class ArchesAPI:
             "payload": {
                 "ar": {"direction": "rtl", "value": "%s"},
                 "en": {"direction": "ltr", "value": "%s"},
+                "ku": {"direction": "ltr", "value": "%s"}
             }
         },
         "DATE_OF_FILE": {
