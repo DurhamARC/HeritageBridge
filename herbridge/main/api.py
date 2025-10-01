@@ -655,6 +655,8 @@ class ArchesAPI:
         if not request_data.get("caption"):
             request_data["caption"] = "No caption."
 
+        session = requests.Session()
+
         inserted_parents = {}
         for key, value in request_data.items():
             error = None
@@ -707,7 +709,6 @@ class ArchesAPI:
                     if key  == "url":
                         response = self.upload_image(value, payload)
                     else:
-                        session = requests.Session()
                         endpoint = self.get_endpoint("tile")
                         response = session.post(endpoint, headers=self.get_headers(referrer=endpoint), data=payload)
 
