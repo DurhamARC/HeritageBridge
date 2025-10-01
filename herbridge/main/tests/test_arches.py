@@ -12,6 +12,7 @@ django.setup()
 from datetime import datetime
 from django.test import TestCase
 from main.api import ArchesAPI
+from main.models import Report, Resource
 from unittest.mock import patch
 
 
@@ -108,17 +109,18 @@ class ArchesAPITestCase(TestCase):
             fixed_line = r.replace(" | ", "\n").strip()
             yaml_data = yaml.safe_load(fixed_line)
 
+            report_info = yaml_data["REPORT_INFO"]
             # Crude email check
             pattern = r'^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
-            match_result = re.match(pattern, yaml_data["ASSESSOR"]["Email"])
+            match_result = re.match(pattern, report_info["ASSESSOR"]["Email"])
             self.assertTrue(match_result)
 
             # Checking that we get a valid datetime
-            self.assertEquals(type(yaml_data["CREATED_AT"]), datetime)
+            self.assertEquals(type(report_info["CREATED_AT"]), datetime)
 
             # Ensure assessor field has text within
-            self.assertGreater(len(yaml_data["ASSESSOR"]["Email"]), 0)
-            self.assertGreater(len(yaml_data["ASSESSOR"]["Name"]), 0)
+            self.assertGreater(len(report_info["ASSESSOR"]["Email"]), 0)
+            self.assertGreater(len(report_info["ASSESSOR"]["Name"]), 0)
 
             # Should match the expected result above
             self.assertEquals(yaml_data["RESOURCE_INFO"], expected_data["RESOURCE_INFO"])
@@ -128,6 +130,39 @@ class ArchesAPITestCase(TestCase):
         with patch("main.api.Image.objects.get") as mock_image, self.assertRaises(ValueError):
             mock_image.return_value = None
             arches_api.description_payload(image_id, desc_payload, description_text)
+
+
+        # pass
+        report = Report.objects.get(id="a0000000-0000-0000-0000-000000000002")
+        resource = Resource.objects.get(id="b0000000-0000-0000-0000-000000000001")
+        tests = [
+            (None, None),
+            (report, None),
+            (None, resource),
+            (report, resource)
+        ]
+        report_string = "No report found"
+        resource_string = "No resource found"
+
+        with patch("main.api.ArchesAPI.get_report_and_resource_for_image") as mock_data_get:
+            for test in tests:
+                mock_data_get.reset_mock()
+                mock_data_get.return_value = test[0], test[1]
+
+                payload = arches_api.description_payload(image_id, desc_payload, description_text)
+                json_payload = json.dumps(payload)
+
+                # if we expect a report, check string in/not
+                if test[0]:
+                    self.assertNotIn(report_string, json_payload)
+                else:
+                    self.assertIn(report_string, json_payload)
+
+                # if we expect a resource, check string in/not
+                if test[1]:
+                    self.assertNotIn(resource_string, json_payload)
+                else:
+                    self.assertIn(resource_string, json_payload)
 
 
     def test_validate_image_request(self):
