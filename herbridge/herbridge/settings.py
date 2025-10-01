@@ -142,7 +142,7 @@ ADMIN_PW = 'admin'
 ADMIN_EMAIL = ''
 
 # Shorthand for supported languages for arches string insertion
-SUPPORTED_ARCHES_LANGUAGES = ['ar', 'en']
+SUPPORTED_ARCHES_LANGUAGES = ['ku', 'en', 'ar']
 
 # setup default password and auth token for frontend app
 FRONTEND_AUTH_PASSWORD = 'eamena2018'
