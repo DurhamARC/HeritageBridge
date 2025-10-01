@@ -430,6 +430,33 @@ class ArchesAPI:
         response = requests.post(endpoint, headers=self.get_headers(referrer=endpoint), data=data)
         return response.status_code
 
+
+    @staticmethod
+    def get_report_and_resource_for_image(image_id):
+        """
+            Retrieves the resource information (report/resource) for an image
+            entry from a given UUID string.
+            Must raise an error if no Image has been found.
+
+            :param image_id: UUID/str - An image object to select the
+            :returns: Tuple containing the report and resource object.
+        """
+
+        image = Image.objects.get(id=image_id)
+
+        if not image:
+            raise ValueError("Image not found.")
+
+        # Get the report through a field lookup, in descending order of creation time
+        report = (Report.objects
+                  .filter(resources__images=image)
+                  .order_by('-createdAt')
+                  .first())
+        resource = report.resources.filter(images=image).first()
+
+        return report, resource
+
+
     @staticmethod
     def description_payload(image_id, description_payload, description_text):
         """
@@ -444,37 +471,40 @@ class ArchesAPI:
         """
         description_payload = json.loads(description_payload)
 
-        image = Image.objects.get(id=image_id)
-
-        if not image:
-            raise ValueError("Image not found.")
-
-        # Get the report through a field lookup, in descending order of creation time
-        report = (Report.objects
-                  .filter(resources__images=image)
-                  .order_by('-createdAt')
-                  .first())
-        resource = report.resources.filter(images=image).first()
-
         description_data = {
-            "CREATED_AT": report.createdAt,
-            "ASSESSOR": {
-                "Name": report.assessor.name,
-                "Email": report.assessor.email
-            },
-            "RESOURCE_INFO": {
+            "IMAGE_DESCRIPTION": description_text,
+            "REPORT_INFO": {},
+            "RESOURCE_INFO": {}
+        }
+
+        report, resource = ArchesAPI.get_report_and_resource_for_image(image_id)
+
+        if report:
+            description_data["REPORT_INFO"] = {
+                "CREATED_AT": report.createdAt,
+                "ASSESSOR": {
+                    "Name": report.assessor.name,
+                    "Email": report.assessor.email
+                }
+            }
+        else:
+            description_data["REPORT_INFO"] = "No report found."
+
+        if resource:
+            description_data["RESOURCE_INFO"] = {
                 "Name": resource.name,
                 "Type": resource.type,
                 "Condition": resource.condition,
+                "Notes": resource.notes,
                 "HAZARD_INFO": {
                     "Hazards": resource.hazards,
                     "Safety_Hazards": resource.safetyHazards,
-                    "Intervention_Required": resource.interventionRequired
-                },
-                "Notes": resource.notes
-            },
-            "IMAGE_DESCRIPTION": description_text
-        }
+                    "Intervention_Required": resource.interventionRequired,
+                }
+            }
+        else:
+            description_data["RESOURCE_INFO"] = "No resource found."
+
         # Dump to more readable format, and replace the newlines with compatible ones/spaces for formatting
         desc_string = yaml.dump(description_data, sort_keys=False)
         disp_string = desc_string.replace("\n", " | ")
@@ -484,6 +514,7 @@ class ArchesAPI:
             description_payload[lang]['value'] = disp_string
 
         return description_payload
+
 
     def search_resources(self, request):
         """
