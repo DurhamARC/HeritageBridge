@@ -71,7 +71,7 @@ export default class extends React.Component {
     return (
       <div>
         {/*<PhotoGridListFilterGroup {...this.props} />*/}
-          { (sections.length > 0) ? sections.slice().reverse().map((section, sectionIndex) => (
+          { (sections.length > 0) ? sections.map((section, sectionIndex) => (
             <GridList
               key={section.date}
               cellHeight={115}
