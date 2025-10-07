@@ -9,6 +9,7 @@ from django.conf import settings
 from main.models import Report, Image
 from PIL import Image as pil_image
 from requests.auth import HTTPBasicAuth
+from uuid import uuid4
 
 class ArchesAPI:
     """
@@ -641,7 +642,8 @@ class ArchesAPI:
         :param request_data:
         :returns:
         """
-        resource_id = request_data["id"]
+        # UUID version 4 is randomised
+        resource_id = str(uuid4())
 
         response_dict = {
             "status_code": 0,
