@@ -1,5 +1,6 @@
 import json
 import logging
+import threading
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -15,6 +16,7 @@ from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 
 arches_api = ArchesAPI()
+thread_lock = threading.Lock()
 
 def home(request):
     return render(request, 'index.html')
@@ -143,7 +145,10 @@ def submit_image_for_resource(request):
         raise Http404()
     elif request.body:
         arches_api.initialise_tokens()
-        response = arches_api.submit_image_report(json.loads(request.body))
+        
+        # If we don't lock this thread, there will be multiple entries for the human-readable ID set by Arches
+        with thread_lock:
+            response = arches_api.submit_image_report(json.loads(request.body))
 
         if response["status_code"] == 201:
             return JsonResponse(status=201, data={"message": response["message"]})
