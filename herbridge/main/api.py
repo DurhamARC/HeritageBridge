@@ -723,7 +723,9 @@ class ArchesAPI:
                         if type(response) == int:
                             status_code = response
                         else:
-                            raise ValueError("Image report response has no status code.")
+                            # Set status code to bad value, and set error message to indicate an issue
+                            status_code = 0
+                            error = "Image report return had no status code."
                 else:
                     # We should just break the loop if error has been set
                     break
