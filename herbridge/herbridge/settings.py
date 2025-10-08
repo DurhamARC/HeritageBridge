@@ -154,6 +154,7 @@ ARCHES_USERNAME = ''
 ARCHES_PASSWORD = ''
 ARCHES_CLIENT_ID = ''
 ARCHES_CLIENT_SECRET = ''
+ARCHES_LOCK_FILE = '/tmp/arches_incrementor.lock'
 
 # names of fixtures that are loaded with db setup --loaddata
 FIXTURES_TO_LOAD = (

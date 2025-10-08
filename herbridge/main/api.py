@@ -1,3 +1,4 @@
+import fcntl
 import json
 import logging
 import os
@@ -630,7 +631,7 @@ class ArchesAPI:
         return None
 
 
-    def submit_image_report(self, request_data):
+    def submit_image_report(self, request_data, file_lock):
         """
         Receives and submits an image to EAMENA from the request_data.
 
@@ -640,6 +641,7 @@ class ArchesAPI:
             latitude, longitude, captureDate, caption
 
         :param request_data:
+        :param file_lock:
         :returns:
         """
         # UUID version 4 is randomised
@@ -726,12 +728,18 @@ class ArchesAPI:
                             # Set status code to bad value, and set error message to indicate an issue
                             status_code = 0
                             error = "Image report return had no status code."
+
+                    # Release the file lock after the first pass
+                    if file_lock:
+                        fcntl.flock(file_lock, fcntl.LOCK_UN)
+                        file_lock = None
                 else:
                     # We should just break the loop if error has been set
                     break
 
             # If any of these fail, we delete the resource and return the message
             if status_code != 200 or error:
+                fcntl.flock(file_lock, fcntl.LOCK_UN)
                 response_error = json.loads(response.text)["message"]
 
                 # Repackaging the error message for the user.
