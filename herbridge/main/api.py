@@ -730,13 +730,6 @@ class ArchesAPI:
                     # We should just break the loop if error has been set
                     break
 
-            res_endpoint = self.get_endpoint("resource") + resource_id
-            desc_endpoint = self.get_endpoint("get_descriptors") + resource_id
-            desc_response = session.get(desc_endpoint, headers=self.get_headers(referrer=res_endpoint))
-
-            if desc_response.status_code != 200:
-                error = "There was an issue getting the descriptors page."
-
             # If any of these fail, we delete the resource and return the message
             if status_code != 200 or error:
                 response_error = json.loads(response.text)["message"]
