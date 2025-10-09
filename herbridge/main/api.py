@@ -739,7 +739,9 @@ class ArchesAPI:
 
             # If any of these fail, we delete the resource and return the message
             if status_code != 200 or error:
-                fcntl.flock(file_lock, fcntl.LOCK_UN)
+                if file_lock:
+                    fcntl.flock(file_lock, fcntl.LOCK_UN)
+
                 response_error = json.loads(response.text)["message"]
 
                 # Repackaging the error message for the user.
