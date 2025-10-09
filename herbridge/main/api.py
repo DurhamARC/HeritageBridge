@@ -742,18 +742,20 @@ class ArchesAPI:
                 if file_lock:
                     fcntl.flock(file_lock, fcntl.LOCK_UN)
 
-                response_error = json.loads(response.text)["message"]
+                response_error = response.content.decode('unicode_escape')
 
                 # Repackaging the error message for the user.
+                # VERY unlikely to occur now as we use random UUIDs
                 if "Multiple Tiles for Cardinality" in response_error:
                     response_dict["message"] = f"An entry already exists for resource (Cardinality Error): {resource_id}"
                 else:
                     response_dict["message"] = f"Failed to insert {resource_id}."
 
+                # We want to delete partially uploaded resource objects.
                 self.delete_resource(resource_id)
 
                 # We either log the response error, or the error we have set here.
-                final_error = error if error else response.content.decode('unicode_escape')
+                final_error = error if error else response_error
                 self.logger.error(final_error)
 
                 response_dict["status_code"] = status_code
