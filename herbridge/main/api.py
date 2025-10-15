@@ -269,13 +269,17 @@ class ArchesAPI:
             "status": 0,
             "session": None
         }
-        index_endpoint = self.get_endpoint("index")
+        index_endpoint = self.get_endpoint("log_in")
         session = requests.Session()
         # Request the homepage to begin a session.
         session.get(index_endpoint)
 
         # Set the Object's internal csrf token for later use
         self.csrf_token = session.cookies.get('csrftoken')
+
+        if self.csrf_token is None:
+            self.logger.error(f"Failed to get CSRF cookie from {index_endpoint}")
+            self.logger.error(session)
 
         # Get the pregenerated headers
         headers = self.get_headers(referrer=index_endpoint)
@@ -285,7 +289,7 @@ class ArchesAPI:
 
         login_request = session.post(self.get_endpoint("log_in"), data=login_data, headers=headers)
 
-        if login_request.status_code in [403, 500]:
+        if login_request.status_code > 400:
             self.log_html_error(
                 login_request,
                 method="login",
