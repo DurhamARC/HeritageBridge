@@ -399,7 +399,7 @@ class ArchesAPI:
 
         # Coordinates are handled differently
         if node_name == "SPATIAL_COORDINATES_GEOMETRY":
-            node["features"][0]["geometry"]["coordinates"] = [request_data["latitude"], request_data["longitude"]]
+            node["features"][0]["geometry"]["coordinates"] = [request_data["longitude"], request_data["latitude"]]
             value = None
         elif node_name == "FILE_UPLOAD":
             value = None
