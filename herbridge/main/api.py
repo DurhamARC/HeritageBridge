@@ -144,6 +144,23 @@ class ArchesAPI:
         "Person-Organisation": "e98e1cee-c38b-11ea-9026-02e7594ce0a0"
     }
 
+    def log_html_error(self, error_response, decode=True, method="unknown", extra=None):
+            self.logger.error("\n\n====================================================================")
+            self.logger.error(f"Error in {method}() method\n")
+            self.logger.error(f"CSRF token: {self.csrf_token}")
+            self.logger.error(f"EAMENA token: {self.eamena_token}\n")
+
+            if extra:
+                self.logger.error(extra)
+
+            if decode:
+                html = error_response.content.decode('unicode_escape')
+            else:
+                html = error_response
+
+            html = html.split('<body>')[1].split('</body>')[0]
+            self.logger.error(html)
+
     def initialise_tokens(self, regenerate=True):
         """
             Initialises the tokens, which also initiates the login function used to
@@ -269,7 +286,11 @@ class ArchesAPI:
         login_request = session.post(self.get_endpoint("log_in"), data=login_data, headers=headers)
 
         if login_request.status_code in [403, 500]:
-            self.logger.error(login_request.content.decode('unicode_escape'))
+            self.log_html_error(
+                login_request,
+                method="login",
+                extra=f"Login data 'login_data':\n{login_data}"
+            )
 
         response["status"] = login_request.status_code
         request_cookies = login_request.request.headers["cookie"]
@@ -756,7 +777,13 @@ class ArchesAPI:
 
                 # We either log the response error, or the error we have set here.
                 final_error = error if error else response_error
-                self.logger.error(final_error)
+
+                extra = (
+                    f"The response code {status_code} for the image submission to EAMENA was not 200 OK\n" +
+                    "\nResponse from server follows:\n"
+                )
+
+                self.log_html_error(final_error, decode=False, method="submit_image_report", extra=extra)
 
                 response_dict["status_code"] = status_code
                 return response_dict
@@ -779,6 +806,6 @@ class ArchesAPI:
         result = session.delete(endpoint, headers=self.get_headers(referrer=endpoint))
 
         if result.status_code != 200:
-            self.logger.error(result.content.decode('unicode_escape'))
+            self.log_html_error(result, method="delete_resource", extra=endpoint)
 
         return result
