@@ -183,7 +183,7 @@ class ArchesAPI:
         """
         available_endpoints = self.endpoints.keys()
         if endpoint_id in available_endpoints:
-            return f"{settings.EAMENA_TARGET}{self.endpoints[endpoint_id]}"
+            return f"{settings.EAMENA_TARGET}/en/{self.endpoints[endpoint_id]}"
         else:
             raise ValueError(f"Given endpoint ID string value ({endpoint_id} does not match expected: {available_endpoints}")
 
