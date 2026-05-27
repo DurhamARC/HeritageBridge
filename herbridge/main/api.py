@@ -1,6 +1,7 @@
 import fcntl
 import json
 import logging
+import re
 import os
 import requests
 import yaml
@@ -154,12 +155,20 @@ class ArchesAPI:
                 self.logger.error(extra)
 
             if decode:
-                html = error_response.content.decode('unicode_escape')
+                html = error_response.content.decode('unicode_escape', errors='replace')
             else:
                 html = error_response
 
-            html = html.split('<body>')[1].split('</body>')[0]
-            self.logger.error(html)
+            html_content = html if isinstance(html, str) else str(html)
+            body_match = re.search(r'<body[^>]*>(.*?)</body>', html_content, flags=re.IGNORECASE | re.DOTALL)
+
+            if body_match:
+                html_content = body_match.group(1).strip()
+
+            if not html_content:
+                html_content = "(empty response body)"
+
+            self.logger.error(html_content)
 
     def initialise_tokens(self, regenerate=True):
         """
