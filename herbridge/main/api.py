@@ -301,7 +301,6 @@ class ArchesAPI:
         # Set the data payload to be sent, including csrf token, username and password
         login_data = self.get_login_data()
         safe_login_data = dict(login_data)
-        safe_login_data['password'] = '***'
 
         login_request = session.post(self.get_endpoint("log_in"), data=login_data, headers=headers)
 
