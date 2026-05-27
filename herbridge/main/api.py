@@ -1,7 +1,6 @@
 import fcntl
 import json
 import logging
-import re
 import os
 import requests
 import yaml
@@ -155,20 +154,12 @@ class ArchesAPI:
                 self.logger.error(extra)
 
             if decode:
-                html = error_response.content.decode('unicode_escape', errors='replace')
+                html = error_response.content.decode('unicode_escape')
             else:
                 html = error_response
 
-            html_content = html if isinstance(html, str) else str(html)
-            body_match = re.search(r'<body[^>]*>(.*?)</body>', html_content, flags=re.IGNORECASE | re.DOTALL)
-
-            if body_match:
-                html_content = body_match.group(1).strip()
-
-            if not html_content:
-                html_content = "(empty response body)"
-
-            self.logger.error(html_content)
+            html = html.split('<body>')[1].split('</body>')[0]
+            self.logger.error(html)
 
     def initialise_tokens(self, regenerate=True):
         """
@@ -281,7 +272,7 @@ class ArchesAPI:
         index_endpoint = self.get_endpoint("log_in")
         session = requests.Session()
         # Request the homepage to begin a session.
-        index_response = session.get(index_endpoint)
+        session.get(index_endpoint)
 
         # Set the Object's internal csrf token for later use
         self.csrf_token = session.cookies.get('csrftoken')
@@ -289,18 +280,12 @@ class ArchesAPI:
         if self.csrf_token is None:
             self.logger.error(f"Failed to get CSRF cookie from {index_endpoint}")
             self.logger.error(session)
-            raise ConnectionError(f"Failed to get CSRF cookie from {index_endpoint}")
-
-        if index_response.status_code >= 400:
-            self.log_html_error(index_response, method="login:index")
-            raise ConnectionError(f"Failed to load login page ({index_response.status_code}): {index_response.reason}")
 
         # Get the pregenerated headers
         headers = self.get_headers(referrer=index_endpoint)
 
         # Set the data payload to be sent, including csrf token, username and password
         login_data = self.get_login_data()
-        safe_login_data = dict(login_data)
 
         login_request = session.post(self.get_endpoint("log_in"), data=login_data, headers=headers)
 
@@ -308,29 +293,14 @@ class ArchesAPI:
             self.log_html_error(
                 login_request,
                 method="login",
-                extra=f"Login data 'login_data':\n{safe_login_data}"
+                extra=f"Login data 'login_data':\n{login_data}"
             )
-            raise ConnectionError(f"Login request failed ({login_request.status_code}): {login_request.reason}")
 
         response["status"] = login_request.status_code
-        request_cookies = login_request.request.headers.get("cookie", "")
+        request_cookies = login_request.request.headers["cookie"]
 
-        cookie_map = {}
-        for cookie in request_cookies.split(";"):
-            if "=" in cookie:
-                key, value = cookie.strip().split("=", 1)
-                cookie_map[key] = value
-
-        self.eamena_token = cookie_map.get("eamena") or session.cookies.get("eamena")
-        self.csrf_token = cookie_map.get("csrftoken") or session.cookies.get("csrftoken")
-
-        if not self.eamena_token or not self.csrf_token:
-            self.log_html_error(
-                login_request,
-                method="login",
-                extra=f"Login data 'login_data':\n{safe_login_data}"
-            )
-            raise ConnectionError("Login completed but required session cookies were missing.")
+        self.eamena_token = request_cookies.split("eamena=")[1]
+        self.csrf_token = request_cookies.split("csrftoken=")[1].split(";")[0]
 
     def get_parent_id(self, nodegroup_id, resource_id):
         """
