@@ -583,7 +583,7 @@ class ArchesAPI:
         resource_filter = f"""&resource-type-filter=[{{"graphid":"{self.graphs["Heritage Place"]}","name":"Heritage Place","inverted":false}}]"""
         url += resource_filter
 
-        response = requests.get(url)
+        response = requests.get(url, headers=self.get_headers(referrer=url))
 
         if response.status_code != 200:
             error_message = f"An error occurred ({response.status_code}): {response.reason}."
